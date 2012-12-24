@@ -5,7 +5,7 @@ var g_ApplicationManager = null;
 var g_ResourceManager = null;
 var g_Resource = [
 	{name:'titlescren', src:'resource/titlescren.png'},
-	{name:'howto', src:'resource/howto.png'}
+	{name:'guide', src:'resource/guide.png'},
 	{name:'animals', src:'resource/animals.png'},
 	{name:'panels', src:'resource/panels.png'}
 ]

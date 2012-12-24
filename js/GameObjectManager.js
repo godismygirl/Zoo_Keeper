@@ -18,13 +18,11 @@ function GameObjectManager()
     {
         g_GameObjectManager = this;
 
-        document.onclick = function(event){g_GameObjectManager.mouseclick(event);}
-        document.onmouseover = function(event){g_GameObjectManager.mouseover(event);}
-        document.onmouseout = function(event){g_GameObjectManager.mouseout(event);}
+        this.canvas = document.getElementById('canvas');
+        this.canvas.onclick = function(event){g_GameObjectManager.mouseclick(event);}
+        this.canvas.onmousemove = function(event){g_GameObjectManager.mousemove(event);}
         document.onkeydown = function(event){g_GameObjectManager.keyDown(event);}
         document.onkeyup = function(event){g_GameObjectManager.keyUp(event);}
-
-        this.canvas = document.getElementById('canvas');
 
         if (this.canvas.getContext)
         {
@@ -139,24 +137,13 @@ function GameObjectManager()
         }
     }
 
-    this.mouseover = function(event)
+    this.mousemove = function(event)
     {
         for (x in this.gameObjects)
         {
-            if (this.gameObjects[x].mouseover)
+            if (this.gameObjects[x].mousemove)
             {
-                this.gameObjects[x].mouseover(event);
-            }
-        }
-    }
-
-    this.mouseout = function(event)
-    {
-        for (x in this.gameObjects)
-        {
-            if (this.gameObjects[x].mouseout)
-            {
-                this.gameObjects[x].mouseout(event);
+                this.gameObjects[x].mousemove(event);
             }
         }
     }

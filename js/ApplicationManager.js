@@ -9,7 +9,8 @@ function ApplicationManager()
     this.startupApplicationManager = function(canvasWidth, canvasHeight)
     {
         g_ApplicationManager = this;
-        this.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.titlescren, 0, 0, 512, 700, 0, 0, 1)
+        this.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.titlescren, 0, 0, 512, 700, 0, 0, 1);
+        this.gameMenu = new GameMenu().startupGameMenu();
         this.updateScore();
         return this;
     }
