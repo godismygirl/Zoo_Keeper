@@ -39,6 +39,17 @@ function VisualGameObject()
         this.height = height; 
         return this;
     }
+
+    this.setImage = function(image, sx, sy, width, height, x, y)
+    {
+        this.image = image;
+        this.sx = sx;
+        this.sy = sy;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
     
     this.shutdownVisualGameObject = function()
     {
