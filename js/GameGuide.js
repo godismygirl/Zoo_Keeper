@@ -42,6 +42,7 @@ function GameGuide()
 		if( event.offsetX > 192 && event.offsetX < 320 && event.offsetY > 650 && event.offsetY < 680 ){
 			//exit button hit
 			g_ApplicationManager.gameMenu = new GameMenu().startupGameMenu();
+			g_ApplicationManager.menuAnimation = new MenuAnimation().startupMenuAnimation();
 			this.shutdownGameGuide();
 		}
 

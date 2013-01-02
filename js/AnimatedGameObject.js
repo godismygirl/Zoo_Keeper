@@ -2,6 +2,7 @@ function AnimatedGameObject()
 {
 
     this.currentFrame = 0;
+    this.frameWidth = 0;
     this.timeBetweenFrames = 0;
     this.timeSinceLastFrame = 0;
     this.frameCount = 0;
@@ -22,9 +23,13 @@ function AnimatedGameObject()
 
         this.startupVisualGameObject(image, sx, sy, width, height, x, y, z);
         this.currentFrame = 0;
+        this.frameWidth = width;
         this.frameCount = frameCount;
         this.timeBetweenFrames = 1/fps;
         this.timeSinceLastFrame = this.timeBetweenFrames;
+
+        console.log(this.frameWidth)
+    console.log(this.currentFrame)
 
         return this;
     }
@@ -57,10 +62,11 @@ function AnimatedGameObject()
 		@param xScroll The global scrolling value of the x axis
 		@param yScroll The global scrolling value of the y axis
     */
+
     this.draw = function(dt, context, xScroll, yScroll)
     {
         var sourceX = this.frameWidth * this.currentFrame;
-        context.drawImage(this.image, sourceX, this.sy, this.width, this.height, this.x - xScroll, this.y - yScroll, this.image.width, this.image.height);
+        context.drawImage(this.image, sourceX, this.sy, this.width, this.height, this.x - xScroll, this.y - yScroll, this.width, this.height);
 
         this.timeSinceLastFrame -= dt;
         if (this.timeSinceLastFrame <= 0)
