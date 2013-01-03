@@ -27,10 +27,7 @@ function AnimatedGameObject()
         this.frameCount = frameCount;
         this.timeBetweenFrames = 1/fps;
         this.timeSinceLastFrame = this.timeBetweenFrames;
-
-        console.log(this.frameWidth)
-    console.log(this.currentFrame)
-
+        
         return this;
     }
 

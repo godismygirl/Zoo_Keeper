@@ -4,7 +4,7 @@ function GameGuide()
 	this.menu = null;
 
 	this.startupGameGuide = function(){
-		this.startupVisualGameObject(g_ResourceManager.guide, 0, 0, 512, 700, 0, 0, 3);
+		this.startupVisualGameObject(g_ResourceManager.guide, 0, 0, 512, 700, 0, 0, 2);
 		this.menu = new GameGuideMenu().startupGameGuideMenu();
 		this.guidePage = 1;
 		return this;
@@ -12,8 +12,10 @@ function GameGuide()
 
 	this.shutdownGameGuide = function()
 	{
-		this.shutdownVisualGameObject();
-		this.menu.shutdownGameGuideMenu();
+		if(this.menu){
+			this.menu.shutdownGameGuideMenu();
+		}
+		this.shutdownVisualGameObject();	
 	}
 
 	this.update = function(){
@@ -42,7 +44,6 @@ function GameGuide()
 		if( event.offsetX > 192 && event.offsetX < 320 && event.offsetY > 650 && event.offsetY < 680 ){
 			//exit button hit
 			g_ApplicationManager.gameMenu = new GameMenu().startupGameMenu();
-			g_ApplicationManager.menuAnimation = new MenuAnimation().startupMenuAnimation();
 			this.shutdownGameGuide();
 		}
 
