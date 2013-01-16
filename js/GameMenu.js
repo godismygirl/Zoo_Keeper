@@ -62,7 +62,8 @@ function GameMenu()
 		switch (this.hoverOnButton)
 		{
 			case 'start' : 
-				//
+				g_ApplicationManager.gamePlay = GamePlay().init();
+				g_ApplicationManager.gameMenu.shutdownGameMenu();
 				break
 			case 'guide' :
 				g_ApplicationManager.gameGuide = new GameGuide().startupGameGuide();
@@ -81,7 +82,7 @@ GameMenu.prototype = new VisualGameObject;
 function MenuAnimation(){
 	this.initialX = 520;
 	this.initialY = 360;
-	this.distance = 20;
+	this.distance = 30;
 	this.animals = [];
 	this.startupMenuAnimation = function(){
 		var _initialX = this.initialX; /*第一只动物的初始位置*/
@@ -108,7 +109,7 @@ function MenuAnimation(){
 
 function Animal(){
 	this.speed = 50;
-	this.queueLength = 964;
+	this.queueLength = 1044;
 	this.startupAnimal = function(image, sx, sy, width, height, x, y, z, frameCount)
 	{
 		this.startupAnimatedGameObject(image, sx, sy, width, height, x, y, z, frameCount, frameCount);

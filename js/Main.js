@@ -9,9 +9,12 @@ var g_Resource = [
 	{name:'animals', src:'resource/animals.png'},
 	{name:'panels', src:'resource/panels.png'},
 	{name:'rank', src:'resource/ranking.png'},
-	{name:'font', src:'resource/font.png'}
+	{name:'font', src:'resource/font.png'},
+	{name:'main', src:'resource/main.png'},
+	{name:'mascot', src:'resource/mascot.png'},
+	{name:'mascotBg', src:'resource/mascot_bg.png'},
 ]
-var g_score = 22860;
+var g_score = 7000;
 
 window.onload = init;
 

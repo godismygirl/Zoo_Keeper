@@ -36,7 +36,7 @@ function AnimatedGameObject()
         this.shutdownVisualGameObject();       
     }
 
-    this.setAnimation = function(image, sx, sy, width, height, frameCount, fps)
+    this.setAnimation = function(image, sx, sy, width, height, x, y, frameCount, fps)
     {
         if (frameCount <= 0) throw "framecount can not be <= 0";
         if (fps <= 0) throw "fps can not be <= 0"
@@ -46,6 +46,8 @@ function AnimatedGameObject()
         this.sy = sy;
         this.width = width;
         this.height = height;
+        this.x = x;
+        this.y = y;
         this.currentFrame = 0;
         this.frameCount = frameCount;
         this.timeBetweenFrames = 1/fps;

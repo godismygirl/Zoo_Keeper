@@ -10,13 +10,13 @@ function GameRank()
 
 		//generate default scores in display
 		var userScoreSet = false;
-		
+
 		for(var i=0; i<9; i++){
 			var score = (12000 - i*1000).toString();
 			var positionX = score.length < 5? 356:330; 
 			var positionY = 124 + i*52;
 
-			if(!userScoreSet && parseInt(score) < g_score){
+			if(!userScoreSet && parseInt(score) <= g_score){
 				this.rank.push(new GameFont().startupGameFont(g_score.toString(), 'white', positionX, positionY, 2));
 				userScoreSet = true;
 			}else{
