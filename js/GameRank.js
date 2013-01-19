@@ -50,7 +50,7 @@ function GameRank()
 GameRank.prototype = new VisualGameObject;
 
 function GameFont(){
-	this.font = [];
+	this.member = [];
 	this.shadow = null;
 	this.type = null;
 	this.rightAlign = false;
@@ -122,23 +122,26 @@ function GameFont(){
 		}
 		//append shadow if needed
 		if(this.type === 'M-yellow' || this.type === 'M-white' ){
-			this.shadow = new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, 28, 2, 2, 32, this.font[string.length - 1].x + this.font[string.length - 1].width, this.font[string.length - 1].y, this.font[string.length - 1].zOrder)
+			this.shadow = new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, 28, 2, 2, 32, this.member[string.length - 1].x + this.member[string.length - 1].width, this.member[string.length - 1].y, this.member[string.length - 1].zOrder)
 		}
 		//reverse font array
-		this.font.reverse();
+		this.member.reverse();
 
 		return this;
 	}
 
 	this.shutdownGameFont = function(){
-		for(var i=0, l=this.font.length; i<l; i++){
-			this.font[i].shutdownVisualGameObject();
+		for(var i=0, l=this.member.length; i<l; i++){
+			this.member[i].shutdownVisualGameObject();
+		}
+		if(this.shadow){
+			this.shadow.shutdownVisualGameObject();
 		}
 	}
 
 	this.updateGameFont = function(string){
 		var _string = string.split("").reverse();
-		var ceil = this.font.length;
+		var ceil = this.member.length;
 		var get_sx, positionX; 
 
 		switch (this.type) 
@@ -176,24 +179,23 @@ function GameFont(){
 			default :
 		}
 
-		if(_string.length > this.font.length)
+		if(_string.length > this.member.length)
 		{
 
 			for(var i=0, l=_string.length; i<l; i++)
 			{
 				if(i<ceil){
-					alert('en')
-					this.font[i].setImage(this.font[0].image, get_sx(_string[i]), this.font[0].sy, this.font[0].width, this.font[0].height, this.font[i].x, this.font[0].y);
+					this.member[i].sx = get_sx(_string[i]);
 				}else{
-					positionX = this.rightAlign? (this.font[ceil - 1].x - this.font[ceil - 1].width) : (this.font[ceil - 1].x + this.font[ceil - 1].width)
-					this.font.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, get_sx(_string[i]), this.font[0].sy, this.font[0].width, this.font[0].height, positionX, this.font[0].y, this.font[0].zOrder))
+					positionX = this.rightAlign? (this.member[i-1].x - this.member[i - 1].width) : (this.member[i - 1].x + this.member[i - 1].width);
+					this.member.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, get_sx(_string[i]), this.member[0].sy, this.member[0].width, this.member[0].height, positionX, this.member[0].y, this.member[0].zOrder))
 				}
 			}
 
 		}else{
 
 			for(var i=0, l=_string.length; i<l; i++){
-				this.font[i].setImage(this.font[0].image, get_sx(_string[i]), this.font[0].sy, this.font[0].width, this.font[0].height, this.font[i].x, this.font[0].y);
+				this.member[i].sx = get_sx(_string[i]);
 			}
 		}
 	}
@@ -242,7 +244,7 @@ function GameFont(){
 			default :
 		}
 
-		this.font.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, _sx, _sy, _w, _h, x, y, z));
+		this.member.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, _sx, _sy, _w, _h, x, y, z));
 
 	}
 }

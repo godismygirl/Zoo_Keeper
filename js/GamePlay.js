@@ -5,10 +5,8 @@ function GamePlay(){
 
 		init : function(){
 			for(var i=0; i<8; i++){
-				record.member.push(new Scoreboard().startupScoreboard(i));
-				
+				record.member.push(new Scoreboard().startupScoreboard(i));	
 			}
-			record.member[0].updateScore(15)
 		},
 
 		shutDown : function(){
@@ -21,13 +19,30 @@ function GamePlay(){
 
 	//total score
 	var score = {
+		total : null,	//hold total score game font object
+		text : null,	//hold the word "level" image
+		level : null,	//hold current level object
 		init : function(){
-			
+			g_score = 0;
+			score.total = new GameFont().startupGameFont('0', 'L', 'right', 480, 20, 3);
+			score.text = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 504, 96, 24, 80, 240, 3);
+			score.level = new GameFont().startupGameFont('1', 'S-yellow', 'left', 178, 240, 3);
+		},
+
+		updateScore : function(int){
+			g_score = g_score + int;
+			score.total.updateGameFont(g_score.toString());
+		},
+
+		shutDown : function(){
+			score.total.shutDownGameFont();
+			score.text.shutDownVisualGameObject();
+			score.level.shutDownGameFont();
 		}
 	}
 
 	//level up & stage change
-	var level = {
+	var upgrade = {
 		init : function(){
 			
 		}
@@ -97,15 +112,41 @@ function GamePlay(){
 
 	//time count
 	var timer = {
-		init : function(){
+		counter : null,
+		limit : 120,
+		init : function(timeLimit){
+			timer.counter = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 516, 4, 12, 374, 84, 301, 2);
+			timer.counter.update = timer.timeTick;
+			if(timeLimit){timer.limit = timeLimit}
+		},
 
+		bouns : function(dh){
+			if(timer.counter.height + dh < 374){
+				timer.counter.sy = timer.counter.sy - dh;
+				timer.counter.y = timer.counter.y - dh;
+				timer.counter.height = timer.counter.height + dh;
+			}else{
+				timer.counter.sy = 4;
+				timer.counter.y = 301;
+				timer.counter.height = 374;
+			}
+		},
+
+		timeTick : function(dt, context, xScroll, yScroll){
+			var dl = dt/timer.limit * 374;
+			this.y = this.y + dl;
+			this.sy = this.sy + dl;
+			this.height = this.height - dl;
 		}
 	}
 
 	//main play field
 	var play = {
+		background : null,
+		panel : [],
+
 		init : function(){
-			
+			play.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 0, 512, 418, 0, 278, 1);
 		}
 	}
 
@@ -114,10 +155,19 @@ function GamePlay(){
 		init : function(){
 			record.init();
 			score.init();
-			level.init();
+			upgrade.init();
 			mascot.init();
 			timer.init();
 			play.init();
+
+			record.member[0].updateScore(15);
+			record.member[0].qualify();
+			score.updateScore(203);
+
+		},
+
+		shutDown : function(){
+			g_GameObjectManager.gameObjects = [];
 		}
 	}
 
@@ -159,6 +209,16 @@ function Scoreboard(){
 			str = this.score.toString();
 		}
 		this.font.updateGameFont(str);
+	}
+
+	this.qualify = function(){
+		this.reachQuota = true;
+		this.background.sy = this.background.sy + 91;
+		this.avatar.sy = this.avatar.sy + 42;
+		for(var i=0,l=this.font.member.length; i<l; i++){
+			this.font.member[i].sy = this.font.member[i].sy + 28;
+		}
+		this.reachQuota = true;
 	}
 
 	this.shutDownScoreboard = function(){
