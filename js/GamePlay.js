@@ -1,12 +1,20 @@
 function GamePlay(){
 	//left side single score record
 	var record = {
-		init : function(){
+		member : [],
 
+		init : function(){
+			for(var i=0; i<8; i++){
+				record.member.push(new Scoreboard().startupScoreboard(i));
+				
+			}
+			record.member[0].updateScore(15)
 		},
 
 		shutDown : function(){
-
+			for(var i=0, l=record.member.length; i<l; i++){
+				record.member[i].shutDownScoreboard();
+			}
 		}
 
 	}
@@ -115,4 +123,47 @@ function GamePlay(){
 
 	return zooKeeper;
 
+}
+
+function Scoreboard(){
+	this.background = null;
+	this.avatar = null;
+	this.font = null;
+	this.score = 0;
+	this.reachQuota = false;
+
+	this.startupScoreboard = function(animalID){
+		/***********************
+			@param	animalID 		integer 0 : Monkey
+											1 : Panda
+											2 : Giraffe
+											3 : Hippo
+											4 : Elephant
+											5 : Frog
+											6 : Lion
+											7 : Rabbit 
+		***********************/
+		this.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 2, 504, 64, 87, 0, animalID*87, 3);
+		this.avatar = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, animalID*42 , 418, 42, 42, 12, animalID*87 + 8, 4);
+		this.font = new GameFont().startupGameFont('00','S-yellow', 'left', 10, animalID*87 + 53, 4);
+
+		return this;
+	}
+
+	this.updateScore = function(score){
+		this.score = this.score + score;
+		var str;
+		if(this.score < 10){
+			str = '0'+this.score.toString();
+		}else{
+			str = this.score.toString();
+		}
+		this.font.updateGameFont(str);
+	}
+
+	this.shutDownScoreboard = function(){
+		this.background.shutDownVisualGameObject();
+		this.avatar.shutDownVisualGameObject();
+		this.font.shutDownGameFont();
+	}
 }

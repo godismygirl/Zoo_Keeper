@@ -10,17 +10,19 @@ function GameRank()
 
 		//generate default scores in display
 		var userScoreSet = false;
+		var positionX = 470;
+		var positionY;
+		var score;
 
 		for(var i=0; i<9; i++){
-			var score = (12000 - i*1000).toString();
-			var positionX = score.length < 5? 356:330; 
-			var positionY = 124 + i*52;
+			score = (12000 - i*1000).toString();
+			positionY = 124 + i*52;
 
 			if(!userScoreSet && parseInt(score) <= g_score){
-				this.rank.push(new GameFont().startupGameFont(g_score.toString(), 'white', positionX, positionY, 2));
+				this.rank.push(new GameFont().startupGameFont(g_score.toString(), 'M-white', 'right', positionX, positionY, 2));
 				userScoreSet = true;
 			}else{
-				this.rank.push(new GameFont().startupGameFont(score, 'yellow', positionX, positionY, 2));
+				this.rank.push(new GameFont().startupGameFont(score, 'M-yellow', 'right', positionX, positionY, 2));
 			}
 			
 		}
@@ -49,23 +51,81 @@ GameRank.prototype = new VisualGameObject;
 
 function GameFont(){
 	this.font = [];
-	this.places = 0;
+	this.shadow = null;
+	this.type = null;
+	this.rightAlign = false;
 
-	this.startupGameFont = function(string, color, x, y, z)
+	this.startupGameFont = function(string, type, align, x, y, z)
 	{
 		/**
 			@param string		the number to display
-			@param color		the color of the number to display( 'white', 'yellow' )
+			@param type			the type of the number to display( 'M-white', 'M-yellow', 'S-white', 'S-yellow', 'L', 'XL' )
 			@param x 			the position on the axis
+			@param align 		text align method ('left' or 'right')
 			@param y        	The position on the Y axis
         	@param z        	The z order of the element
 		*/
-		this.places = string.length;
+		this.type = type;
+		this.rightAlign = align === 'right'? true:false;
+
+		var _positionX;
+		
 		for(var i=0, l=string.length; i<l; i++){
-			var _isLastWord = i === l-1? true:false; 
-			var _positionX = x + i*26;
-			this.genFontObject(string[i], color, _positionX, y, z, _isLastWord);
+			_isLastWord = i === l-1? true:false; 
+			
+			switch (type) {
+				case 'M-yellow' :
+					if(this.rightAlign){
+						_positionX = x - (l-i)*26;
+					}else{
+						_positionX = x + i*26;
+					}
+					break
+				case 'M-white' :
+					if(this.rightAlign){
+						_positionX = x - (l-i)*26;
+					}else{
+						_positionX = x + i*26;
+					}
+					break
+				case 'S-yellow' :
+					if(this.rightAlign){
+						_positionX = x - (l-i)*22;
+					}else{
+						_positionX = x + i*22;
+					}
+					break
+				case 'S-white' :
+					if(this.rightAlign){
+						_positionX = x - (l-i)*22;
+					}else{
+						_positionX = x + i*22;
+					}
+					break
+				case 'L' :
+					if(this.rightAlign){
+						_positionX = x - (l-i)*40;
+					}else{
+						_positionX = x + i*40;
+					}
+					break
+				case 'XL' :
+					if(this.rightAlign){
+						_positionX = x - (l-i)*48;
+					}else{
+						_positionX = x + i*48;
+					}
+					break
+				default :		
+			}
+			this.genFontObject(string[i], type, _positionX, y, z, _isLastWord);
 		}
+		//append shadow if needed
+		if(this.type === 'M-yellow' || this.type === 'M-white' ){
+			this.shadow = new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, 28, 2, 2, 32, this.font[string.length - 1].x + this.font[string.length - 1].width, this.font[string.length - 1].y, this.font[string.length - 1].zOrder)
+		}
+		//reverse font array
+		this.font.reverse();
 
 		return this;
 	}
@@ -76,45 +136,113 @@ function GameFont(){
 		}
 	}
 
-	this.genFontObject = function(word, color, x, y, z, isLastWord){
-		var _sy = color === 'white'? 38:2;
-		var _width = isLastWord? 28:26;
-		var _sx = 0;
+	this.updateGameFont = function(string){
+		var _string = string.split("").reverse();
+		var ceil = this.font.length;
+		var get_sx, positionX; 
 
-		switch (word){
-			case '0' :
-				_sx = 2
+		switch (this.type) 
+		{
+			case 'M-yellow' :
+				get_sx = function(int){
+					return 2 + int*32
+				};
 				break
-			case '1' :
-				_sx = 34
+			case 'M-white' :
+				get_sx = function(int){
+					return 2 + int*32
+				};
 				break
-			case '2' :
-				_sx = 66
+			case 'S-yellow' :
+				get_sx = function(int){
+					return 2 + int*26
+				};
 				break
-			case '3' :
-				_sx = 98
+			case 'S-white' :
+				get_sx = function(int){
+					return 2 + int*26
+				};
 				break
-			case '4' :
-				_sx = 130
+			case 'L' :
+				get_sx = function(int){
+					return int*40
+				};
 				break
-			case '5' :
-				_sx = 162
-				break
-			case '6' :
-				_sx = 194
-				break
-			case '7' :
-				_sx = 226
-				break
-			case '8' :
-				_sx = 258
-				break
-			case '9' :
-				_sx = 290
+			case 'XL' :
+				get_sx = function(int){
+					return 2 + int*50
+				};
 				break
 			default :
 		}
 
-		this.font.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, _sx, _sy, _width, 32, x, y, z));
+		if(_string.length > this.font.length)
+		{
+
+			for(var i=0, l=_string.length; i<l; i++)
+			{
+				if(i<ceil){
+					alert('en')
+					this.font[i].setImage(this.font[0].image, get_sx(_string[i]), this.font[0].sy, this.font[0].width, this.font[0].height, this.font[i].x, this.font[0].y);
+				}else{
+					positionX = this.rightAlign? (this.font[ceil - 1].x - this.font[ceil - 1].width) : (this.font[ceil - 1].x + this.font[ceil - 1].width)
+					this.font.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, get_sx(_string[i]), this.font[0].sy, this.font[0].width, this.font[0].height, positionX, this.font[0].y, this.font[0].zOrder))
+				}
+			}
+
+		}else{
+
+			for(var i=0, l=_string.length; i<l; i++){
+				this.font[i].setImage(this.font[0].image, get_sx(_string[i]), this.font[0].sy, this.font[0].width, this.font[0].height, this.font[i].x, this.font[0].y);
+			}
+		}
+	}
+
+	this.genFontObject = function(word, type, x, y, z, isLastWord){
+		var _sx,_sy,_w,_h;
+		var _multiplier = parseInt(word);
+
+		switch (type) {
+			case 'M-yellow' :
+				_sx = 2 + _multiplier*32;
+				_sy = 2;
+				_w = 26;
+				_h = 32;
+				break
+			case 'M-white' :
+				_sx = 2 + _multiplier*32;
+				_sy = 38;
+				_w = 26;
+				_h = 32;
+				break
+			case 'S-yellow' :
+				_sx = 2 + _multiplier*26;
+				_sy = 74;
+				_w = 22;
+				_h = 24;
+				break
+			case 'S-white' :
+				_sx = 2 + _multiplier*26;
+				_sy = 102;
+				_w = 22;
+				_h = 24;
+				break
+			case 'L' :
+				_sx = _multiplier*40;
+				_sy = 128;
+				_w = 40;
+				_h = 50;
+				break
+			case 'XL' :
+				_sx = 2 + _multiplier*50;
+				_sy = 180;
+				_w = 48;
+				_h = 50;
+				break
+			default :
+		}
+
+		this.font.push(new VisualGameObject().startupVisualGameObject(g_ResourceManager.font, _sx, _sy, _w, _h, x, y, z));
+
 	}
 }
