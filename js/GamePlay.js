@@ -43,9 +43,24 @@ function GamePlay(){
 
 	//level up & stage change
 	var upgrade = {
-		init : function(){
+		stage : null,
+
+		init : function(level){
+			this.stage = new StageChange().startupStageChange(level);
+		},
+
+		shutDown : function(){
 			
+		},
+
+		transition : function(speed){
+			
+		},
+
+		moveBackground : function(){
+
 		}
+
 	}
 
 	//top most animation looping
@@ -155,10 +170,10 @@ function GamePlay(){
 		init : function(){
 			record.init();
 			score.init();
-			upgrade.init();
 			mascot.init();
 			timer.init();
 			play.init();
+			upgrade.init(8);
 
 			record.member[0].updateScore(15);
 			record.member[0].qualify();
@@ -227,3 +242,91 @@ function Scoreboard(){
 		this.font.shutDownGameFont();
 	}
 }
+
+function StageChange(){
+	this.multi = null;
+	this.quota = null;
+	this.level = null;
+	this.currentLevel = null;
+
+	this.speed = 500;
+	this.timePass = 0;
+
+	this.startupStageChange = function(level){
+		var _x;
+		if(level*2 > 9){
+			_x = 630;
+		}else{
+			_x = 650;
+		}
+		this.startupVisualGameObject(g_ResourceManager.main, 70, 572, 360, 150, 523, 400, 2);
+		this.multi = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 534, 34, 34, _x, 490, 3);
+		this.quota = new GameFont().startupGameFont( (level*2).toString(), 'L', 'left', _x+45, 476, 3 );
+
+		this.level = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 340, 422, 176, 64, -400, 354, 3);
+		this.currentLevel = new GameFont().startupGameFont(level.toString(), 'XL', 'left', -215, 354, 3);	
+		
+	}
+
+	this.update = function(dt, context, xScroll, yScroll){
+		//background moving
+		if(this.x - this.speed * dt > 123){
+			this.x = this.x - this.speed * dt;
+			this.multi.x = this.multi.x - this.speed * dt;
+
+			if(this.quota.member.length === 1){
+				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
+			}else{
+				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
+				this.quota.member[1].x = this.quota.member[1].x - this.speed * dt;
+			}
+
+		}else{
+			this.x = 123;
+			this.multi.x = 230;
+
+			if(this.quota.member.length === 1){
+				this.quota.member[0].x = 275;
+			}else{
+				this.quota.member[0].x = 315;
+				this.quota.member[1].x = 275;
+			}
+		}
+
+		//title moving
+		if(this.currentLevel.member.length === 1){
+
+			if(this.level.x + this.speed * dt < 186){
+				this.level.x = this.level.x + this.speed * dt;
+				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
+			}else{
+				this.level.x = 186;
+				this.currentLevel.member[0].x = 371;
+			}
+
+		}else{
+
+			if(this.level.x + this.speed * dt < 165){
+				this.level.x = this.level.x + this.speed * dt;
+
+				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
+				this.currentLevel.member[1].x = this.currentLevel.member[1].x + this.speed * dt;
+			}else{
+				this.level.x = 165;
+				this.currentLevel.member[0].x = 392;
+				this.currentLevel.member[1].x = 350;
+			}
+		}
+		
+
+	}
+
+	this.shutDownStageChange = function(){
+		this.multi.shutDownVisualGameObject();
+		this.currentLevel.shutDownGameFont();
+		this.quota.shutDownGameFont();
+		this.level.shutDownVisualGameObject();
+		this.shutDownVisualGameObject();
+	}
+}
+StageChange.prototype = new VisualGameObject;

@@ -111,9 +111,9 @@ function GameFont(){
 					break
 				case 'XL' :
 					if(this.rightAlign){
-						_positionX = x - (l-i)*48;
+						_positionX = x - (l-i)*40;
 					}else{
-						_positionX = x + i*48;
+						_positionX = x + i*40;
 					}
 					break
 				default :		
@@ -173,7 +173,7 @@ function GameFont(){
 				break
 			case 'XL' :
 				get_sx = function(int){
-					return 2 + int*50
+					return 2 + int*52
 				};
 				break
 			default :
@@ -236,10 +236,10 @@ function GameFont(){
 				_h = 50;
 				break
 			case 'XL' :
-				_sx = 2 + _multiplier*50;
+				_sx = 2 + _multiplier*52;
 				_sy = 180;
 				_w = 48;
-				_h = 50;
+				_h = 64;
 				break
 			default :
 		}
