@@ -30,10 +30,6 @@ function Piece(){
 		this.draw = this.animate;
 	}
 
-	this.mouseclick = function(event){
-
-	}
-
 	this.wink = function(){
 		this.currentFrame = 0;
 		this.frameWidth = this.width;
@@ -41,6 +37,10 @@ function Piece(){
 		this.timeBetweenFrames = 0.5;
 		this.timeSinceLastFrame = this.timeBetweenFrames;
 		this.draw = this.animate;
+	}
+
+	this.huff = function(){
+		this.sx = 92;
 	}
 	
 	this.animate = function(dt, context, xScroll, yScroll){

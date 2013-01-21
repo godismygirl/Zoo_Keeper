@@ -173,11 +173,16 @@ function GamePlay(){
 	var play = {
 		background : null,
 		field : null,
+		picker : null,
 		panel : [8],
 
+		selected : false, // hold selected piece row, col index  "selected:{row: int, col:int}"
+
+
 		init : function(){
-			play.field = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 0, 512, 418, 0, 278, 3);
-			play.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 724, 368, 368, 119, 304, 1);
+			play.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 0, 512, 418, 0, 278, 3);
+			play.field = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 724, 368, 368, 119, 304, 1);
+			play.picker = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.panels, 0, 416, 58, 58, 520, 400, 4, 2, 4)
 
 			var xPosition, yPosition;
 			for(var i=0; i<8; i++){
@@ -185,7 +190,35 @@ function GamePlay(){
 				for(var j=0; j<8; j++){
 					xPosition = 119 + j*46;
 					yPosition = 304 + i*46;
-					play.panel[i].push(new Piece().startupPiece(i, j).wink()) 
+					play.panel[i].push(new Piece().startupPiece(i, j)) 
+				}
+			}
+
+			play.field.mouseclick = play.pieceClick;
+		},
+
+		pieceClick : function(event){
+
+			var rowIndex = Math.floor( (event.offsetY - play.field.y) / 46);
+			var colIndex = Math.floor( (event.offsetX - play.field.x) / 46);
+			
+			if( rowIndex >= 0 && rowIndex < 8 && colIndex >= 0 && colIndex <8){
+				if(!play.selected){
+					play.selected = {
+						row : rowIndex,
+						col : colIndex
+					}
+					play.pickerOn(rowIndex, colIndex);
+				}else{
+
+					if(Math.abs(rowIndex - play.selected.row) + Math.abs(colIndex - play.selected.col) > 1){
+						//not adjacent
+						play.selected.row = rowIndex;
+						play.selected.col = colIndex;
+						play.pickerOn(rowIndex, colIndex);
+					}else{
+						alert('adjacent')
+					}
 				}
 			}
 
@@ -193,6 +226,15 @@ function GamePlay(){
 
 		shuffle : function(){
 
+		},
+
+		pickerOn : function(row, col){
+			play.picker.x = play.panel[row][col].x - 6;
+			play.picker.y = play.panel[row][col].y - 6;
+		},
+
+		hidePicker : function(){
+			play.picker.x = 520;
 		}
 	}
 
