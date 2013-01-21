@@ -3,9 +3,16 @@ function GamePlay(){
 	var record = {
 		member : [],
 
-		init : function(){
+		init : function(cap){
 			for(var i=0; i<8; i++){
-				record.member.push(new Scoreboard().startupScoreboard(i));	
+				record.member.push(new Scoreboard().startupScoreboard(i, cap));	
+			}
+		},
+
+		reset : function(cap){
+			//cap : 	new quota
+			for(var i=0; i<8; i++){
+				record.member[i].reset(cap);	
 			}
 		},
 
@@ -45,20 +52,17 @@ function GamePlay(){
 	var upgrade = {
 		stage : null,
 
-		init : function(level){
-			this.stage = new StageChange().startupStageChange(level);
-		},
-
-		shutDown : function(){
-			
-		},
-
-		transition : function(speed){
-			
-		},
-
-		moveBackground : function(){
-
+		transition : function(level, levelStage){
+			/*******************
+				@param level : 			current difficult level
+				@param levelStage : 	current stage in current difficult level( total 3 stages in each difficult level )
+				@param speed : 			animation speed ( pxiels / second )
+			********************/
+			if(upgrade.stage){
+				upgrade.stage.shutDownStageChange();
+			}
+			upgrade.stage = new StageChange().startupStageChange(level, levelStage);
+			upgrade.stage.animate();
 		}
 
 	}
@@ -130,9 +134,12 @@ function GamePlay(){
 		counter : null,
 		limit : 120,
 		init : function(timeLimit){
-			timer.counter = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 516, 4, 12, 374, 84, 301, 2);
-			timer.counter.update = timer.timeTick;
+			timer.counter = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 516, 4, 12, 374, 84, 301, 4);
 			if(timeLimit){timer.limit = timeLimit}
+		},
+
+		countdown : function(){
+			timer.counter.update = timer.timeTick;
 		},
 
 		bouns : function(dh){
@@ -147,6 +154,13 @@ function GamePlay(){
 			}
 		},
 
+		reset : function(limit){
+			timer.limit = limit;
+			timer.counter.y = 301;
+			timer.counter.sy = 4;
+			timer.counter.height = 374;
+		},
+
 		timeTick : function(dt, context, xScroll, yScroll){
 			var dl = dt/timer.limit * 374;
 			this.y = this.y + dl;
@@ -158,26 +172,68 @@ function GamePlay(){
 	//main play field
 	var play = {
 		background : null,
-		panel : [],
+		field : null,
+		panel : [8],
 
 		init : function(){
-			play.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 0, 512, 418, 0, 278, 1);
+			play.field = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 0, 512, 418, 0, 278, 3);
+			play.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 724, 368, 368, 119, 304, 1);
+
+			var xPosition, yPosition;
+			for(var i=0; i<8; i++){
+				play.panel[i] = [];
+				for(var j=0; j<8; j++){
+					xPosition = 119 + j*46;
+					yPosition = 304 + i*46;
+					play.panel[i].push(new Piece().startupPiece(i, j).wink()) 
+				}
+			}
+
+		},
+
+		shuffle : function(){
+
 		}
 	}
 
 	//ovrall handler
 	var zooKeeper = {
+		level : 1,
+		currentLevelStage : 1,
+
 		init : function(){
-			record.init();
+			//custom event binding
+
+			record.init(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);
 			score.init();
 			mascot.init();
 			timer.init();
 			play.init();
-			upgrade.init(8);
+
+			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
 
 			record.member[0].updateScore(15);
-			record.member[0].qualify();
 			score.updateScore(203);
+
+			return zooKeeper;
+		},
+
+		nextStage : function(){
+			if(zooKeeper.currentLevelStage < 3){
+				zooKeeper.currentLevelStage ++;
+			}else{
+				zooKeeper.currentLevelStage = 1;
+				zooKeeper.level ++;
+			}
+			record.reset(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);
+			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
+			timer.reset(timer.limit - 5 * zooKeeper.level);
+		},
+
+		setStage : function(){
+			//callback after stage change animation, start counting, init animals .etc 
+			timer.countdown();
+			play.shuffle();
 
 		},
 
@@ -189,144 +245,3 @@ function GamePlay(){
 	return zooKeeper;
 
 }
-
-function Scoreboard(){
-	this.background = null;
-	this.avatar = null;
-	this.font = null;
-	this.score = 0;
-	this.reachQuota = false;
-
-	this.startupScoreboard = function(animalID){
-		/***********************
-			@param	animalID 		integer 0 : Monkey
-											1 : Panda
-											2 : Giraffe
-											3 : Hippo
-											4 : Elephant
-											5 : Frog
-											6 : Lion
-											7 : Rabbit 
-		***********************/
-		this.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 2, 504, 64, 87, 0, animalID*87, 3);
-		this.avatar = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, animalID*42 , 418, 42, 42, 12, animalID*87 + 8, 4);
-		this.font = new GameFont().startupGameFont('00','S-yellow', 'left', 10, animalID*87 + 53, 4);
-
-		return this;
-	}
-
-	this.updateScore = function(score){
-		this.score = this.score + score;
-		var str;
-		if(this.score < 10){
-			str = '0'+this.score.toString();
-		}else{
-			str = this.score.toString();
-		}
-		this.font.updateGameFont(str);
-	}
-
-	this.qualify = function(){
-		this.reachQuota = true;
-		this.background.sy = this.background.sy + 91;
-		this.avatar.sy = this.avatar.sy + 42;
-		for(var i=0,l=this.font.member.length; i<l; i++){
-			this.font.member[i].sy = this.font.member[i].sy + 28;
-		}
-		this.reachQuota = true;
-	}
-
-	this.shutDownScoreboard = function(){
-		this.background.shutDownVisualGameObject();
-		this.avatar.shutDownVisualGameObject();
-		this.font.shutDownGameFont();
-	}
-}
-
-function StageChange(){
-	this.multi = null;
-	this.quota = null;
-	this.level = null;
-	this.currentLevel = null;
-
-	this.speed = 500;
-	this.timePass = 0;
-
-	this.startupStageChange = function(level){
-		var _x;
-		if(level*2 > 9){
-			_x = 630;
-		}else{
-			_x = 650;
-		}
-		this.startupVisualGameObject(g_ResourceManager.main, 70, 572, 360, 150, 523, 400, 2);
-		this.multi = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 534, 34, 34, _x, 490, 3);
-		this.quota = new GameFont().startupGameFont( (level*2).toString(), 'L', 'left', _x+45, 476, 3 );
-
-		this.level = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 340, 422, 176, 64, -400, 354, 3);
-		this.currentLevel = new GameFont().startupGameFont(level.toString(), 'XL', 'left', -215, 354, 3);	
-		
-	}
-
-	this.update = function(dt, context, xScroll, yScroll){
-		//background moving
-		if(this.x - this.speed * dt > 123){
-			this.x = this.x - this.speed * dt;
-			this.multi.x = this.multi.x - this.speed * dt;
-
-			if(this.quota.member.length === 1){
-				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
-			}else{
-				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
-				this.quota.member[1].x = this.quota.member[1].x - this.speed * dt;
-			}
-
-		}else{
-			this.x = 123;
-			this.multi.x = 230;
-
-			if(this.quota.member.length === 1){
-				this.quota.member[0].x = 275;
-			}else{
-				this.quota.member[0].x = 315;
-				this.quota.member[1].x = 275;
-			}
-		}
-
-		//title moving
-		if(this.currentLevel.member.length === 1){
-
-			if(this.level.x + this.speed * dt < 186){
-				this.level.x = this.level.x + this.speed * dt;
-				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
-			}else{
-				this.level.x = 186;
-				this.currentLevel.member[0].x = 371;
-			}
-
-		}else{
-
-			if(this.level.x + this.speed * dt < 165){
-				this.level.x = this.level.x + this.speed * dt;
-
-				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
-				this.currentLevel.member[1].x = this.currentLevel.member[1].x + this.speed * dt;
-			}else{
-				this.level.x = 165;
-				this.currentLevel.member[0].x = 392;
-				this.currentLevel.member[1].x = 350;
-			}
-		}
-		
-
-	}
-
-	this.shutDownStageChange = function(){
-		this.multi.shutDownVisualGameObject();
-		this.currentLevel.shutDownGameFont();
-		this.quota.shutDownGameFont();
-		this.level.shutDownVisualGameObject();
-		this.shutDownVisualGameObject();
-	}
-}
-StageChange.prototype = new VisualGameObject;

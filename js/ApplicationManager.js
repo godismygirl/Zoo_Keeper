@@ -1,5 +1,9 @@
 function ApplicationManager()
 {
+    this.gameMenu = null;
+    this.rank = null;
+    this.gameGuide = null;
+    this.gamePlay = null;
     /**
         Initialises this object
         @param canvasWidth      The width of the canvas
@@ -12,6 +16,10 @@ function ApplicationManager()
         this.gameMenu = new GameMenu().startupGameMenu();
         this.updateScore();
         return this;
+    }
+
+    this.nextStage = function(){
+        this.gamePlay.nextStage();
     }
 
     this.updateScore = function()
