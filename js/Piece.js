@@ -12,10 +12,6 @@ function Piece(){
 		return this;
 	}
 
-	this.explodeCheck = function(){
-		
-	}
-
 	this.shutDownPiece = function(){
 		this.shutDownVisualGameObject();
 	}
@@ -27,7 +23,7 @@ function Piece(){
 		this.timeBetweenFrames = 0.125;
 		this.timeSinceLastFrame = this.timeBetweenFrames;
 		this.explodingOffset = 138;
-		this.draw = this.animate;
+		this.update = this.animate;
 	}
 
 	this.wink = function(){
@@ -36,7 +32,17 @@ function Piece(){
 		this.frameCount = 2;
 		this.timeBetweenFrames = 0.5;
 		this.timeSinceLastFrame = this.timeBetweenFrames;
-		this.draw = this.animate;
+		this.update = this.animate;
+	}
+
+	this.winkOff = function(){
+		this.currentFrame = null;
+		this.frameWidth = null;
+		this.frameCount = null;
+		this.timeBetweenFrames = null;
+		this.timeSinceLastFrame = null;
+		this.sx = 0;
+		this.update = null;
 	}
 
 	this.huff = function(){
@@ -45,7 +51,7 @@ function Piece(){
 	
 	this.animate = function(dt, context, xScroll, yScroll){
 		var sourceX = this.frameWidth * this.currentFrame + this.explodingOffset;
-        context.drawImage(this.image, sourceX, this.sy, this.width, this.height, this.x - xScroll, this.y - yScroll, this.width, this.height);
+        this.sx = sourceX;
 
         this.timeSinceLastFrame -= dt;
         if (this.timeSinceLastFrame <= 0)

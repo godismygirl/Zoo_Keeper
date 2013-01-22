@@ -203,25 +203,122 @@ function GamePlay(){
 			var colIndex = Math.floor( (event.offsetX - play.field.x) / 46);
 			
 			if( rowIndex >= 0 && rowIndex < 8 && colIndex >= 0 && colIndex <8){
+
 				if(!play.selected){
 					play.selected = {
 						row : rowIndex,
 						col : colIndex
 					}
 					play.pickerOn(rowIndex, colIndex);
-				}else{
+					//piece wink on click
+					play.panel[rowIndex][colIndex].wink();
+
+				}else if( !(rowIndex === play.selected.row && colIndex === play.selected.col) ){
 
 					if(Math.abs(rowIndex - play.selected.row) + Math.abs(colIndex - play.selected.col) > 1){
 						//not adjacent
+						play.panel[play.selected.row][play.selected.col].winkOff();
+
 						play.selected.row = rowIndex;
 						play.selected.col = colIndex;
 						play.pickerOn(rowIndex, colIndex);
+						play.panel[rowIndex][colIndex].wink();
 					}else{
-						alert('adjacent')
+						var checkResult = play.pieceCheck(rowIndex, colIndex, play.selected.row, play.selected.col);
+						if(checkResult){
+
+						}else{
+							play.swap(rowIndex, colIndex, true);
+						}
+					}
+
+				}
+
+			}
+
+		},
+
+		swap : function(row, col, reverse){
+			/************************************************************************
+				@param row : 		row index of target piece to change position
+				@param col : 		col index of target piece to change position
+				@param reverse : 	if reverse animation ( boolean )
+			*************************************************************************/
+			var speed = 200;
+
+			var starter = play.panel[play.selected.row][play.selected.col];
+			var ender = play.panel[row][col];
+
+			var starterX = starter.x;
+			var starterY = starter.y;
+			var enderX = ender.x;
+			var enderY = ender.y;
+
+			var direction;
+			var originDirection;
+
+			if(play.selected.row !== row){
+				direction = starter.y - enderY < 0? 1 : -1;
+				originDirection = direction;
+				play.field.update = function(dt, context, xScroll, yScroll){
+
+					starter.y = starter.y + speed*dt*direction;
+					ender.y = ender.y - speed*dt*direction;
+
+					if( (starter.y - starterY)*originDirection < 0 ){
+						starter.y = starterY;
+						ender.y = enderY;
+						play.field.update = null;
+					}
+
+					if( (starter.y - enderY)*originDirection > 0 ){
+						if(reverse){
+							starter.y = enderY;
+							ender.y = starterY;
+							direction = -1 * direction;
+						}else{
+							starter.y = enderY;
+							ender.y = starterY;
+							play.field.update = null;
+							alert('explode')
+						}
 					}
 				}
 			}
 
+			if(play.selected.col !== col){
+				direction = starter.x - enderX < 0? 1 : -1;
+				originDirection = direction;
+				play.field.update = function(dt, context, xScroll, yScroll){
+				
+					starter.x = starter.x + speed*dt*direction;
+					ender.x = ender.x -speed*dt*direction;
+
+					if( (starter.x - starterX)*originDirection < 0 ){
+						starter.x = starterX;
+						ender.x = enderX;
+						play.field.update = null;
+					}
+
+					if( (starter.x - enderX)*originDirection > 0 ){
+						if(reverse){
+							starter.x = enderX;
+							ender.x = starterX;
+							direction = -1 * direction;
+						}else{
+							starter.x = enderX;
+							ender.x = starterX;
+							play.field.update = null;
+							alert('explode')
+						}
+					}
+				}
+			}
+	
+		},
+
+		pieceCheck : function(nextRow, nextCol, prevRow, prevCol){
+			
 		},
 
 		shuffle : function(){
@@ -233,7 +330,7 @@ function GamePlay(){
 			play.picker.y = play.panel[row][col].y - 6;
 		},
 
-		hidePicker : function(){
+		pickerOff : function(){
 			play.picker.x = 520;
 		}
 	}
