@@ -175,7 +175,6 @@ function GamePlay(){
 		field : null,
 		picker : null,
 		panel : [8],
-		toCheck : [],
 		toExplode : [],
 
 		selected : false, // hold selected piece row, col index  "selected:{row: int, col:int}"
@@ -275,10 +274,8 @@ function GamePlay(){
 							//change piece position in panel
 							play.panel[play.selected.row][play.selected.col] = ender; 
 							play.panel[row][col] = starter;
-							//push in check array
-							play.toCheck.push([play.selected.row, play.selected.col]);
-							play.toCheck.push([row, col]);
-							play.pieceCheck();
+							//swap check
+							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col}]);
 						}else{
 							//fix position
 							starter.y = enderY;
@@ -322,9 +319,7 @@ function GamePlay(){
 							play.panel[play.selected.row][play.selected.col] = ender; 
 							play.panel[row][col] = starter;
 							//push in check array
-							play.toCheck.push([play.selected.row, play.selected.col]);
-							play.toCheck.push([row, col]);
-							play.pieceCheck()
+							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col}]);
 						}else{
 							//fix position
 							starter.x = enderX;
@@ -343,72 +338,77 @@ function GamePlay(){
 	
 		},
 
-		pieceCheck : function(){
-			
-			for(var i=0, l=play.toCheck.length; i<l; i++){
-
-				var verticalCheckResult = [];
-				var horizontalCheckResult = [];
-				var rowIndex = play.toCheck[i][0];
-				var colIndex = play.toCheck[i][1];
-
-				//vertical check
-				if(rowIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
-					verticalCheckResult.push({r:rowIndex - 1, c:colIndex});
-					if(rowIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 2][colIndex].id){
-						verticalCheckResult.push({r:rowIndex - 2, c:colIndex});
-					}
-				}
-
-				if(rowIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
-					verticalCheckResult.push({r:rowIndex + 1, c:colIndex});
-					if(rowIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 2][colIndex].id){
-						verticalCheckResult.push({r:rowIndex + 2, c:colIndex});
-					}
-				}
-
-				//horizontal check
-				if(colIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
-					horizontalCheckResult.push({r:rowIndex, c:colIndex - 1});
-					if(colIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 2].id){
-						horizontalCheckResult.push({r:rowIndex, c:colIndex - 2});
-					}
-				}
-
-				if(colIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
-					horizontalCheckResult.push({r:rowIndex, c:colIndex + 1});
-					if(colIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 2].id){
-						horizontalCheckResult.push({r:rowIndex, c:colIndex + 2});
-					}
-				}
-
-				if( !(verticalCheckResult.length < 2 && horizontalCheckResult.length < 2)){
-					//console.log('boom')
-					if(verticalCheckResult.length >= 2){
-						play.toExplode = play.toExplode.concat(verticalCheckResult);
-					}
-					if(horizontalCheckResult.length >= 2){
-						play.toExplode = play.toExplode.concat(horizontalCheckResult);
-					}
-					play.toExplode.push({r:rowIndex, c:colIndex});
-				}
-
+		swapCheck : function(array){
+			var arr = array;
+			var toExplode = [];
+			for(var i=0, l=arr.length; i<l; i++){
+				toExplode = toExplode.concat(play.pieceCheck(arr[i].r, arr[i].c));
 			}
 
-			if(play.toExplode.length > 0){
-				play.pieceExplode();
+			if(toExplode.length > 0){
+				play.pieceExplode(toExplode);
 			}else{
-				play.swap(play.toCheck[1][0], play.toCheck[1][1], true);
+				play.swap(arr[1].r, arr[1].c, true);
 			}
-			//clear toCheck array
-			play.toCheck = [];
 		},
 
-		pieceExplode : function(){
-			for(var i=0, l=play.toExplode.length; i<l; i++){
-				play.panel[ play.toExplode[i].r ][ play.toExplode[i].c ].explode();
+		pieceCheck : function(row, col){
+			var toExplode = [];
+			var verticalCheckResult = [];
+			var horizontalCheckResult = [];
+			var rowIndex = row;
+			var colIndex = col;
+
+			//vertical check
+			if(rowIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
+				verticalCheckResult.push({r:rowIndex - 1, c:colIndex});
+				if(rowIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 2][colIndex].id){
+					verticalCheckResult.push({r:rowIndex - 2, c:colIndex});
+				}
 			}
-			play.toExplode = [];
+
+			if(rowIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
+				verticalCheckResult.push({r:rowIndex + 1, c:colIndex});
+				if(rowIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 2][colIndex].id){
+					verticalCheckResult.push({r:rowIndex + 2, c:colIndex});
+				}
+			}
+
+			//horizontal check
+			if(colIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
+				horizontalCheckResult.push({r:rowIndex, c:colIndex - 1});
+				if(colIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 2].id){
+					horizontalCheckResult.push({r:rowIndex, c:colIndex - 2});
+				}
+			}
+
+			if(colIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
+				horizontalCheckResult.push({r:rowIndex, c:colIndex + 1});
+				if(colIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 2].id){
+					horizontalCheckResult.push({r:rowIndex, c:colIndex + 2});
+				}
+			}
+
+			if( !(verticalCheckResult.length < 2 && horizontalCheckResult.length < 2)){
+				//console.log('boom')
+				if(verticalCheckResult.length >= 2){
+					toExplode = toExplode.concat(verticalCheckResult);
+				}
+				if(horizontalCheckResult.length >= 2){
+					toExplode = toExplode.concat(horizontalCheckResult);
+				}
+				toExplode.push({r:rowIndex, c:colIndex});
+			}
+
+			return toExplode;
+
+		},
+
+		pieceExplode : function(array){
+			var arr = array;
+			for(var i=0, l=arr.length; i<l; i++){
+				play.panel[arr[i].r][arr[i].c].explode();
+			}
 			play.pickerOff();
 		},
 
