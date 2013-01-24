@@ -1,4 +1,5 @@
 function Piece(){
+	this.type = null;
 	this.explodingOffset = 0;
 	this.row = null;
 	this.col = null;
@@ -8,6 +9,7 @@ function Piece(){
 		yPosition = 304 + x*46;
 		this.row = x;
 		this.col = y;
+		this.id = i; 
 		this.startupVisualGameObject(g_ResourceManager.panels, 0, i*46, 46, 46, xPosition, yPosition, 2);
 		return this;
 	}

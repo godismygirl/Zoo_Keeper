@@ -175,6 +175,8 @@ function GamePlay(){
 		field : null,
 		picker : null,
 		panel : [8],
+		toCheck : [],
+		toExplode : [],
 
 		selected : false, // hold selected piece row, col index  "selected:{row: int, col:int}"
 
@@ -205,31 +207,21 @@ function GamePlay(){
 			if( rowIndex >= 0 && rowIndex < 8 && colIndex >= 0 && colIndex <8){
 
 				if(!play.selected){
-					play.selected = {
-						row : rowIndex,
-						col : colIndex
-					}
+					
 					play.pickerOn(rowIndex, colIndex);
 					//piece wink on click
 					play.panel[rowIndex][colIndex].wink();
 
 				}else if( !(rowIndex === play.selected.row && colIndex === play.selected.col) ){
 
+					play.panel[play.selected.row][play.selected.col].winkOff();
 					if(Math.abs(rowIndex - play.selected.row) + Math.abs(colIndex - play.selected.col) > 1){
-						//not adjacent
-						play.panel[play.selected.row][play.selected.col].winkOff();
-
-						play.selected.row = rowIndex;
-						play.selected.col = colIndex;
+						//not adjacent					
 						play.pickerOn(rowIndex, colIndex);
 						play.panel[rowIndex][colIndex].wink();
 					}else{
-						var checkResult = play.pieceCheck([{'x':rowIndex, 'y':colIndex}, {'x':play.selected.row, 'y':play.selected.col}]);
-						if(checkResult){
-
-						}else{
-							play.swap(rowIndex, colIndex, true);
-						}
+						//adjacent
+						play.swap(rowIndex, colIndex);
 					}
 
 				}
@@ -256,10 +248,12 @@ function GamePlay(){
 
 			var direction;
 			var originDirection;
-
+			
+			
 			if(play.selected.row !== row){
 				direction = starter.y - enderY < 0? 1 : -1;
 				originDirection = direction;
+
 				play.field.update = function(dt, context, xScroll, yScroll){
 
 					starter.y = starter.y + speed*dt*direction;
@@ -272,16 +266,32 @@ function GamePlay(){
 					}
 
 					if( (starter.y - enderY)*originDirection > 0 ){
-						if(reverse){
+						if(!reverse){
+							//fix position
 							starter.y = enderY;
 							ender.y = starterY;
-							direction = -1 * direction;
-						}else{
-							starter.y = enderY;
-							ender.y = starterY;
+							//stop animation
 							play.field.update = null;
-							alert('explode')
+							//change piece position in panel
+							play.panel[play.selected.row][play.selected.col] = ender; 
+							play.panel[row][col] = starter;
+							//push in check array
+							play.toCheck.push([play.selected.row, play.selected.col]);
+							play.toCheck.push([row, col]);
+							play.pieceCheck();
+						}else{
+							//fix position
+							starter.y = enderY;
+							ender.y = starterY;
+							//change piece position in panel
+							play.panel[play.selected.row][play.selected.col] = ender; 
+							play.panel[row][col] = starter;
+							//stop animation
+							play.field.update = null;
+							//turn off picker
+							play.pickerOff();
 						}
+						
 					}
 				}
 			}
@@ -289,6 +299,7 @@ function GamePlay(){
 			if(play.selected.col !== col){
 				direction = starter.x - enderX < 0? 1 : -1;
 				originDirection = direction;
+
 				play.field.update = function(dt, context, xScroll, yScroll){
 				
 					starter.x = starter.x + speed*dt*direction;
@@ -301,15 +312,30 @@ function GamePlay(){
 					}
 
 					if( (starter.x - enderX)*originDirection > 0 ){
-						if(reverse){
+						if(!reverse){
+							//fix position
 							starter.x = enderX;
 							ender.x = starterX;
-							direction = -1 * direction;
-						}else{
-							starter.x = enderX;
-							ender.x = starterX;
+							//stop animation
 							play.field.update = null;
-							alert('explode')
+							//change piece position in panel
+							play.panel[play.selected.row][play.selected.col] = ender; 
+							play.panel[row][col] = starter;
+							//push in check array
+							play.toCheck.push([play.selected.row, play.selected.col]);
+							play.toCheck.push([row, col]);
+							play.pieceCheck()
+						}else{
+							//fix position
+							starter.x = enderX;
+							ender.x = starterX;
+							//change piece position in panel
+							play.panel[play.selected.row][play.selected.col] = ender; 
+							play.panel[row][col] = starter;
+							//stop animation
+							play.field.update = null;
+							//turn off picker
+							play.pickerOff();
 						}
 					}
 				}
@@ -317,8 +343,73 @@ function GamePlay(){
 	
 		},
 
-		pieceCheck : function(pieceArray){
+		pieceCheck : function(){
 			
+			for(var i=0, l=play.toCheck.length; i<l; i++){
+
+				var verticalCheckResult = [];
+				var horizontalCheckResult = [];
+				var rowIndex = play.toCheck[i][0];
+				var colIndex = play.toCheck[i][1];
+
+				//vertical check
+				if(rowIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
+					verticalCheckResult.push({r:rowIndex - 1, c:colIndex});
+					if(rowIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 2][colIndex].id){
+						verticalCheckResult.push({r:rowIndex - 2, c:colIndex});
+					}
+				}
+
+				if(rowIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
+					verticalCheckResult.push({r:rowIndex + 1, c:colIndex});
+					if(rowIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 2][colIndex].id){
+						verticalCheckResult.push({r:rowIndex + 2, c:colIndex});
+					}
+				}
+
+				//horizontal check
+				if(colIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
+					horizontalCheckResult.push({r:rowIndex, c:colIndex - 1});
+					if(colIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 2].id){
+						horizontalCheckResult.push({r:rowIndex, c:colIndex - 2});
+					}
+				}
+
+				if(colIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
+					horizontalCheckResult.push({r:rowIndex, c:colIndex + 1});
+					if(colIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 2].id){
+						horizontalCheckResult.push({r:rowIndex, c:colIndex + 2});
+					}
+				}
+
+				if( !(verticalCheckResult.length < 2 && horizontalCheckResult.length < 2)){
+					//console.log('boom')
+					if(verticalCheckResult.length >= 2){
+						play.toExplode = play.toExplode.concat(verticalCheckResult);
+					}
+					if(horizontalCheckResult.length >= 2){
+						play.toExplode = play.toExplode.concat(horizontalCheckResult);
+					}
+					play.toExplode.push({r:rowIndex, c:colIndex});
+				}
+
+			}
+
+			if(play.toExplode.length > 0){
+				play.pieceExplode();
+			}else{
+				play.swap(play.toCheck[1][0], play.toCheck[1][1], true);
+			}
+			//clear toCheck array
+			play.toCheck = [];
+		},
+
+		pieceExplode : function(){
+			for(var i=0, l=play.toExplode.length; i<l; i++){
+				play.panel[ play.toExplode[i].r ][ play.toExplode[i].c ].explode();
+			}
+			play.toExplode = [];
+			play.pickerOff();
 		},
 
 		shuffle : function(){
@@ -328,10 +419,15 @@ function GamePlay(){
 		pickerOn : function(row, col){
 			play.picker.x = play.panel[row][col].x - 6;
 			play.picker.y = play.panel[row][col].y - 6;
+			play.selected = {
+				"row" : row,
+				"col" : col
+			}
 		},
 
 		pickerOff : function(){
 			play.picker.x = 520;
+			play.selected = false;
 		}
 	}
 
