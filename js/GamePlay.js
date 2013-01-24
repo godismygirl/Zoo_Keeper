@@ -224,7 +224,7 @@ function GamePlay(){
 						play.pickerOn(rowIndex, colIndex);
 						play.panel[rowIndex][colIndex].wink();
 					}else{
-						var checkResult = play.pieceCheck(rowIndex, colIndex, play.selected.row, play.selected.col);
+						var checkResult = play.pieceCheck([{'x':rowIndex, 'y':colIndex}, {'x':play.selected.row, 'y':play.selected.col}]);
 						if(checkResult){
 
 						}else{
@@ -317,7 +317,7 @@ function GamePlay(){
 	
 		},
 
-		pieceCheck : function(nextRow, nextCol, prevRow, prevCol){
+		pieceCheck : function(pieceArray){
 			
 		},
 
