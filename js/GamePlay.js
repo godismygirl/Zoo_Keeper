@@ -272,6 +272,10 @@ function GamePlay(){
 							//stop animation
 							play.field.update = null;
 							//change piece position in panel
+							starter.row = row;
+							starter.col = col;
+							ender.row = play.selected.row;
+							ender.col = play.selected.col;
 							play.panel[play.selected.row][play.selected.col] = ender; 
 							play.panel[row][col] = starter;
 							//swap check
@@ -281,6 +285,10 @@ function GamePlay(){
 							starter.y = enderY;
 							ender.y = starterY;
 							//change piece position in panel
+							starter.row = row;
+							starter.col = col;
+							ender.row = play.selected.row;
+							ender.col = play.selected.col;
 							play.panel[play.selected.row][play.selected.col] = ender; 
 							play.panel[row][col] = starter;
 							//stop animation
@@ -316,15 +324,23 @@ function GamePlay(){
 							//stop animation
 							play.field.update = null;
 							//change piece position in panel
+							starter.row = row;
+							starter.col = col;
+							ender.row = play.selected.row;
+							ender.col = play.selected.col;
 							play.panel[play.selected.row][play.selected.col] = ender; 
 							play.panel[row][col] = starter;
 							//push in check array
-							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col}]);
+							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col} ]);
 						}else{
 							//fix position
 							starter.x = enderX;
 							ender.x = starterX;
 							//change piece position in panel
+							starter.row = row;
+							starter.col = col;
+							ender.row = play.selected.row;
+							ender.col = play.selected.col;
 							play.panel[play.selected.row][play.selected.col] = ender; 
 							play.panel[row][col] = starter;
 							//stop animation
@@ -361,31 +377,31 @@ function GamePlay(){
 
 			//vertical check
 			if(rowIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
-				verticalCheckResult.push({r:rowIndex - 1, c:colIndex});
+				verticalCheckResult.push(play.panel[rowIndex - 1][colIndex]);
 				if(rowIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 2][colIndex].id){
-					verticalCheckResult.push({r:rowIndex - 2, c:colIndex});
+					verticalCheckResult.push(play.panel[rowIndex - 2][colIndex]);
 				}
 			}
 
 			if(rowIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
-				verticalCheckResult.push({r:rowIndex + 1, c:colIndex});
+				verticalCheckResult.push(play.panel[rowIndex + 1][colIndex]);
 				if(rowIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 2][colIndex].id){
-					verticalCheckResult.push({r:rowIndex + 2, c:colIndex});
+					verticalCheckResult.push(play.panel[rowIndex + 2][colIndex]);
 				}
 			}
 
 			//horizontal check
 			if(colIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
-				horizontalCheckResult.push({r:rowIndex, c:colIndex - 1});
+				horizontalCheckResult.push(play.panel[rowIndex][colIndex - 1]);
 				if(colIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 2].id){
-					horizontalCheckResult.push({r:rowIndex, c:colIndex - 2});
+					horizontalCheckResult.push(play.panel[rowIndex][colIndex - 2]);
 				}
 			}
 
 			if(colIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
-				horizontalCheckResult.push({r:rowIndex, c:colIndex + 1});
+				horizontalCheckResult.push(play.panel[rowIndex][colIndex + 1]);
 				if(colIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 2].id){
-					horizontalCheckResult.push({r:rowIndex, c:colIndex + 2});
+					horizontalCheckResult.push(play.panel[rowIndex][colIndex + 2]);
 				}
 			}
 
@@ -397,7 +413,7 @@ function GamePlay(){
 				if(horizontalCheckResult.length >= 2){
 					toExplode = toExplode.concat(horizontalCheckResult);
 				}
-				toExplode.push({r:rowIndex, c:colIndex});
+				toExplode.push(play.panel[rowIndex][colIndex]);
 			}
 
 			return toExplode;
@@ -407,9 +423,99 @@ function GamePlay(){
 		pieceExplode : function(array){
 			var arr = array;
 			for(var i=0, l=arr.length; i<l; i++){
-				play.panel[arr[i].r][arr[i].c].explode();
+				arr[i].explode();
+				play.panel[arr[i].row][arr[i].col] = null;
 			}
 			play.pickerOff();
+			play.pieceReload(arr);
+		},
+
+		pieceReload : function(array){
+			//reposition piece after explosion
+			var arr = array;
+			var toReload = [];
+			var tempArr = [];
+
+			var blank = {};
+			var pushed = {};
+			var fromTop;
+			var colIndex; 
+			var offset;
+			var speed;
+
+			//get blank index in each col that has piece exploded
+			for(var i=0, l=arr.length; i<l; i++){
+				if(blank[arr[i].col.toString()]){
+					blank[arr[i].col.toString()] ++;
+				}else{
+					blank[arr[i].col.toString()] = 1;
+				}
+			}
+
+			for(var i=0, l=arr.length; i<l; i++){
+				fromTop = arr[i].row;
+				colIndex = arr[i].col;
+				offset = 1;
+				tempArr = [];
+				alert('fromTop:'+fromTop)
+				while(fromTop > 0){
+					fromTop --;
+					if( play.panel[fromTop][arr[i].col]){
+						if(pushed[colIndex.toString()]){
+							break;
+							
+						}else{
+							//console.log(fromTop+'/'+arr[i].col)
+							tempArr.push( play.panel[fromTop][colIndex] );	
+						}
+									
+					}else{
+						offset ++;
+						alert(offset)
+					}	
+				}
+				alert('end')
+				pushed[colIndex.toString()] = true;
+				console.log("offset:"+offset);
+
+				for(var y=0, yl=tempArr.length; y<yl; y++){
+					//reset row, col index of pieces that are already in panel
+					tempArr[y].row = tempArr[y].row + blank[colIndex.toString()];
+					play.panel[tempArr[y].row][colIndex] = tempArr[y];
+				}
+
+				//generate new piece && set their row, col index in panel
+				play.panel[offset][colIndex] = new Piece().startupPiece(offset, colIndex);
+				play.panel[offset][colIndex].y = play.panel[offset][colIndex].y - (blank[colIndex.toString()] - offset +2)*46;
+				console.log(play.panel[offset][colIndex].y+'++++++++++')
+				tempArr.push(play.panel[offset][colIndex]);
+				
+
+				toReload = toReload.concat(tempArr);
+
+			}
+			//console.log(toReload)
+			/*
+			for(var i=0, l=toReload.length; i<l; i++){
+				//add update method to let piece drop
+				play.pieceDrop(toReload[i]);
+			}
+			*/
+
+		},
+
+		pieceDrop : function(piece){
+			var speed = 50;
+			console.log(304 + 46*piece.row + '/'+piece.y)
+
+			piece.update = function(dt, context, xScroll, yScroll){
+				if(piece.y < 304 + 46*piece.row){
+					piece.y = piece.y + speed*dt;
+				}else{
+					piece.y = 304 + 46*piece.row;
+					piece.update = null;
+				}
+			}
 		},
 
 		shuffle : function(){
