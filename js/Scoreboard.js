@@ -63,9 +63,9 @@ function Scoreboard(){
 		}
 	}
 
-	this.shutDownScoreboard = function(){
-		this.background.shutDownVisualGameObject();
-		this.avatar.shutDownVisualGameObject();
-		this.font.shutDownGameFont();
+	this.shutdownScoreboard = function(){
+		this.background.shutdownVisualGameObject();
+		this.avatar.shutdownVisualGameObject();
+		this.font.shutdownGameFont();
 	}
 }

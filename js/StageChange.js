@@ -5,7 +5,7 @@ function StageChange(){
 	this.currentLevel = null;
 
 	this.speed = 600;
-
+	this.pauseDuration = 1;
 	this.timePass = 0;
 
 	this.startupStageChange = function(level, levelStage){
@@ -98,7 +98,7 @@ function StageChange(){
 
 	this.pause = function(dt, context, xScroll, yScroll){
 		this.timePass = this.timePass + dt;
-		if(this.timePass > 2){
+		if(this.timePass > this.pauseDuration){
 			this.update = this.slideOut;
 		}
 	}
@@ -145,12 +145,12 @@ function StageChange(){
 
 	}
 
-	this.shutDownStageChange = function(){
-		this.multi.shutDownVisualGameObject();
-		this.currentLevel.shutDownGameFont();
-		this.quota.shutDownGameFont();
-		this.level.shutDownVisualGameObject();
-		this.shutDownVisualGameObject();
+	this.shutdownStageChange = function(){
+		this.multi.shutdownVisualGameObject();
+		this.currentLevel.shutdownGameFont();
+		this.quota.shutdownGameFont();
+		this.level.shutdownVisualGameObject();
+		this.shutdownVisualGameObject();
 	}
 }
 StageChange.prototype = new VisualGameObject;

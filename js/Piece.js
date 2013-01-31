@@ -14,18 +14,8 @@ function Piece(){
 		return this;
 	}
 
-	this.shutDownPiece = function(){
-		this.shutDownVisualGameObject();
-	}
-
-	this.explode = function(){
-		this.currentFrame = 0;
-		this.frameWidth = this.width;
-		this.frameCount = 4;
-		this.timeBetweenFrames = 0.125;
-		this.timeSinceLastFrame = this.timeBetweenFrames;
-		this.explodingOffset = 138;
-		this.update = this.animate;
+	this.shutdownPiece = function(){
+		this.shutdownVisualGameObject();
 	}
 
 	this.wink = function(){
@@ -52,20 +42,13 @@ function Piece(){
 	}
 	
 	this.animate = function(dt, context, xScroll, yScroll){
-		var sourceX = this.frameWidth * this.currentFrame + this.explodingOffset;
-        this.sx = sourceX;
+        this.sx = this.frameWidth * this.currentFrame;
 
         this.timeSinceLastFrame -= dt;
         if (this.timeSinceLastFrame <= 0)
         {
            this.timeSinceLastFrame = this.timeBetweenFrames;
            ++this.currentFrame;
-           //animate explode once
-           if(this.explodingOffset && this.currentFrame === 4){
-	        	this.draw = null;
-	        	this.explodingOffset = 0;
-	        }
-
            this.currentFrame %= this.frameCount;
         }
     

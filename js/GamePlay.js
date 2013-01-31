@@ -177,7 +177,7 @@ function GamePlay(){
 		panel : [8],
 		toExplode : [],
 
-		selected : false, // hold selected piece row, col index  "selected:{row: int, col:int}"
+		selected : null, 
 
 
 		init : function(){
@@ -198,170 +198,127 @@ function GamePlay(){
 			play.field.mouseclick = play.pieceClick;
 		},
 
-		pieceClick : function(event){
+		pickerOn : function(piece){
+			play.picker.x = piece.x - 6;
+			play.picker.y = piece.y - 6;
+			play.selected = piece;
+		},
 
+		pickerOff : function(){
+			play.picker.x = 520;
+			play.selected = null;
+		},
+
+		pieceClick : function(event){
 			var rowIndex = Math.floor( (event.offsetY - play.field.y) / 46);
 			var colIndex = Math.floor( (event.offsetX - play.field.x) / 46);
+			var targetPiece = play.panel[rowIndex][colIndex];
 			
 			if( rowIndex >= 0 && rowIndex < 8 && colIndex >= 0 && colIndex <8){
 
 				if(!play.selected){
-					
-					play.pickerOn(rowIndex, colIndex);
-					//piece wink on click
-					play.panel[rowIndex][colIndex].wink();
-
+					play.pickerOn( targetPiece );
+					targetPiece.wink();
 				}else if( !(rowIndex === play.selected.row && colIndex === play.selected.col) ){
-
-					play.panel[play.selected.row][play.selected.col].winkOff();
+					play.selected.winkOff();
 					if(Math.abs(rowIndex - play.selected.row) + Math.abs(colIndex - play.selected.col) > 1){
-						//not adjacent					
-						play.pickerOn(rowIndex, colIndex);
-						play.panel[rowIndex][colIndex].wink();
+						//not adjacent				
+						play.pickerOn( targetPiece );
+						targetPiece.wink();
 					}else{
 						//adjacent
-						play.swap(rowIndex, colIndex);
+						play.swap(play.selected, targetPiece);
 					}
-
 				}
 
 			}
 
 		},
 
-		swap : function(row, col, reverse){
-			/************************************************************************
-				@param row : 		row index of target piece to change position
-				@param col : 		col index of target piece to change position
-				@param reverse : 	if reverse animation ( boolean )
-			*************************************************************************/
-			var speed = 200;
-
-			var starter = play.panel[play.selected.row][play.selected.col];
-			var ender = play.panel[row][col];
-
+		swap : function(starter, ender, reverse){
+			//@param  piece : 		target piece to swap position with
+			//@param  reverse : 	if it is reverse to origin position
+			var starter = starter;
+			var ender = ender;
 			var starterX = starter.x;
 			var starterY = starter.y;
 			var enderX = ender.x;
 			var enderY = ender.y;
-
+			var speed = 200;
 			var direction;
-			var originDirection;
-			
+			//change piece position in panel
 			function resetPiece(){
-				starter.row = row;
-				starter.col = col;
-				ender.row = play.selected.row;
-				ender.col = play.selected.col;
-				play.panel[play.selected.row][play.selected.col] = ender; 
-				play.panel[row][col] = starter;
+				var tmpRow = starter.row;
+				var tmpCol = starter.col;
+
+				starter.row = ender.row;
+				starter.col = ender.col;
+				ender.row = tmpRow;
+				ender.col = tmpCol;
+
+				play.panel[ender.row][ender.col] = ender; 
+				play.panel[starter.row][starter.col] = starter;
+
+				play.field.update = null;
+				if(!reverse){
+					play.swapCheck(starter, ender);
+				}
 			}
 			
-			if(play.selected.row !== row){
-				direction = starter.y - enderY < 0? 1 : -1;
-				originDirection = direction;
+			if(starter.row !== ender.row){
+				direction = enderY - starterY > 0? 1 : -1;
 
 				play.field.update = function(dt, context, xScroll, yScroll){
 
-					starter.y = starter.y + speed*dt*direction;
-					ender.y = ender.y - speed*dt*direction;
-
-					if( (starter.y - starterY)*originDirection < 0 ){
-						starter.y = starterY;
-						ender.y = enderY;
-						play.field.update = null;
+					if( (starter.y + speed*dt*direction - enderY)*direction > 0 ){
+						starter.y = enderY;
+						ender.y = starterY;
+						resetPiece();
+					}else{
+						starter.y = starter.y + speed*dt*direction;
+						ender.y = ender.y - speed*dt*direction;
 					}
 
-					if( (starter.y - enderY)*originDirection > 0 ){
-						if(!reverse){
-							//fix position
-							starter.y = enderY;
-							ender.y = starterY;
-							//stop animation
-							play.field.update = null;
-							//change piece position in panel
-							resetPiece();
-							//swap check
-							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col}]);
-						}else{
-							//fix position
-							starter.y = enderY;
-							ender.y = starterY;
-							//change piece position in panel
-							resetPiece();
-							//stop animation
-							play.field.update = null;
-							//turn off picker
-							play.pickerOff();
-						}
-						
-					}
 				}
 			}
 
-			if(play.selected.col !== col){
-				direction = starter.x - enderX < 0? 1 : -1;
-				originDirection = direction;
+			if(starter.col !== ender.col){
+				direction = enderX - starterX > 0? 1 : -1;
 
 				play.field.update = function(dt, context, xScroll, yScroll){
 				
-					starter.x = starter.x + speed*dt*direction;
-					ender.x = ender.x -speed*dt*direction;
-
-					if( (starter.x - starterX)*originDirection < 0 ){
-						starter.x = starterX;
-						ender.x = enderX;
-						play.field.update = null;
+					if( (starter.x + speed*dt*direction - enderX)*direction > 0 ){
+						starter.x = enderX;
+						ender.x = starterX;
+						resetPiece();
+					}else{
+						starter.x = starter.x + speed*dt*direction;
+						ender.x = ender.x - speed*dt*direction;
 					}
 
-					if( (starter.x - enderX)*originDirection > 0 ){
-						if(!reverse){
-							//fix position
-							starter.x = enderX;
-							ender.x = starterX;
-							//stop animation
-							play.field.update = null;
-							//change piece position in panel
-							resetPiece();
-							//push in check array
-							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col} ]);
-						}else{
-							//fix position
-							starter.x = enderX;
-							ender.x = starterX;
-							//change piece position in panel
-							resetPiece();
-							//stop animation
-							play.field.update = null;
-							//turn off picker
-							play.pickerOff();
-						}
-					}
 				}
 			}
-	
+
 		},
 
-		swapCheck : function(array){
-			var arr = array;
+		swapCheck : function(starter, ender){
 			var toExplode = [];
-			for(var i=0, l=arr.length; i<l; i++){
-				toExplode = toExplode.concat(play.pieceCheck(arr[i].r, arr[i].c));
-			}
-
+			toExplode = toExplode.concat(play.pieceCheck(starter));
+			toExplode = toExplode.concat(play.pieceCheck(ender));
 			if(toExplode.length > 0){
 				play.pieceExplode(toExplode);
 			}else{
-				play.swap(arr[1].r, arr[1].c, true);
+				play.pickerOff();
+				play.swap(ender, starter, true);
 			}
 		},
 
-		pieceCheck : function(row, col){
+		pieceCheck : function(piece){
 			var toExplode = [];
 			var verticalCheckResult = [];
 			var horizontalCheckResult = [];
-			var rowIndex = row;
-			var colIndex = col;
+			var rowIndex = piece.row;
+			var colIndex = piece.col;
 
 			//vertical check
 			if(rowIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
@@ -409,13 +366,40 @@ function GamePlay(){
 		},
 
 		pieceExplode : function(array){
-			var arr = array;
-			for(var i=0, l=arr.length; i<l; i++){
-				arr[i].explode();
-				play.panel[arr[i].row][arr[i].col] = null;
+			var bomb;
+			var exploded = false;
+			play.field.mouseclick = null;
+
+			for(var i=0, l=array.length; i<l; i++){
+				bomb = array[i];
+
+				bomb.currentFrame = 0;
+				bomb.frameWidth = bomb.width;
+				bomb.frameCount = 4;
+				bomb.timeBetweenFrames = 0.125;
+				bomb.timeSinceLastFrame = bomb.timeBetweenFrames;
+
+				bomb.update = function(dt, context, xScroll, yScroll){
+					this.sx = this.frameWidth * this.currentFrame + 138;
+			        this.timeSinceLastFrame -= dt;
+			        if (this.timeSinceLastFrame <= 0)
+			        {
+			           	this.timeSinceLastFrame = this.timeBetweenFrames;
+			           	++this.currentFrame;
+			           	//animate explode once
+			           	if(this.currentFrame === 4){
+			           		//console.log('set to null:'+this.row+'/'+this.col)
+			           		this.shutdownPiece();
+			           		if(!exploded){
+			           			exploded = true;	
+			           			play.pieceReload(array);
+			           		}			
+				        }
+			           	this.currentFrame %= this.frameCount;
+			        }
+				}
 			}
 			play.pickerOff();
-			play.pieceReload(arr);
 		},
 
 		pieceReload : function(array){
@@ -430,13 +414,15 @@ function GamePlay(){
 			var colIndex; 
 			var offset;
 
-			//get blank index in each col that has piece exploded
 			for(var i=0, l=arr.length; i<l; i++){
+				//get blank index in each col that has piece exploded
 				if(blank[arr[i].col.toString()]){
 					blank[arr[i].col.toString()] ++;
 				}else{
 					blank[arr[i].col.toString()] = 1;
 				}
+				//remove piece from panel
+				play.panel[arr[i].row][arr[i].col] = false;
 			}
 
 			for(var i=0, l=arr.length; i<l; i++){
@@ -446,68 +432,53 @@ function GamePlay(){
 
 				while(fromTop > 0){
 					fromTop --;
-					console.log('////'+play.panel[fromTop][arr[i].col]+'///')
 					if( play.panel[fromTop][arr[i].col]){
 						if(pushed[colIndex.toString()]){
 							break;
-							
 						}else{
 							//console.log(fromTop+'/'+arr[i].col)
 							toReload.push( play.panel[fromTop][colIndex] );	
-						}
-									
+						}			
 					}else{
 						offset ++;
 					}	
 				}
 				pushed[colIndex.toString()] = true;
 				//console.log("offset:"+offset);
-
 				toReload.push(new Piece().startupPiece(-offset, colIndex))
-
 			}
-
+			
 			//reset row, col index of pieces to be reload
 			for(var i=0, l=toReload.length; i<l; i++){
 				toReload[i].row = toReload[i].row + blank[toReload[i].col.toString()];
 				play.panel[toReload[i].row][toReload[i].col] = toReload[i];
 			}
 
-			for(var i=0, l=toReload.length; i<l; i++){
-				//add update method to let piece drop
-				play.pieceDrop(toReload[i]);
-			}
-
+			play.pieceDrop(toReload);
 		},
 
-		pieceDrop : function(piece){
-
-			piece.update = function(dt, context, xScroll, yScroll){
-				if(piece.y < 304 + 46*piece.row){
-					piece.y = piece.y + 500*dt;
-				}else{
-					piece.y = 304 + 46*piece.row;
-					piece.update = null;
+		pieceDrop : function(array){
+			var done = [];
+			play.field.update = function(dt, context, xScroll, yScroll){
+				var allDone = true;
+				for(var i=0, l=array.length; i<l; i++){
+					if(array[i].y + 500*dt < 304 + 46*array[i].row){
+						array[i].y = array[i].y + 200*dt;
+						allDone = false;
+					}else{
+						array[i].y = 304 + 46*array[i].row;
+					}
+				}
+				if(allDone){
+					play.background.update = null;
+					play.field.mouseclick = play.pieceClick;
 				}
 			}
+
 		},
 
 		shuffle : function(){
 
-		},
-
-		pickerOn : function(row, col){
-			play.picker.x = play.panel[row][col].x - 6;
-			play.picker.y = play.panel[row][col].y - 6;
-			play.selected = {
-				"row" : row,
-				"col" : col
-			}
-		},
-
-		pickerOff : function(){
-			play.picker.x = 520;
-			play.selected = false;
 		}
 	}
 
@@ -518,7 +489,6 @@ function GamePlay(){
 
 		init : function(){
 			//custom event binding
-
 			record.init(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);
 			score.init();
 			mascot.init();
@@ -526,9 +496,6 @@ function GamePlay(){
 			play.init();
 
 			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
-
-			record.member[0].updateScore(15);
-			score.updateScore(203);
 
 			return zooKeeper;
 		},
