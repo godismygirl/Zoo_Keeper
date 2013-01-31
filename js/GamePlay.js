@@ -117,8 +117,8 @@ function GamePlay(){
 		},
 
 		init : function(){
-			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 1);
-			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 2, 2, 2);
+			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 3);
+			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 2, 2, 4);
 			mascot.animal.update = mascot.update;
 		},
 		
@@ -248,6 +248,14 @@ function GamePlay(){
 			var direction;
 			var originDirection;
 			
+			function resetPiece(){
+				starter.row = row;
+				starter.col = col;
+				ender.row = play.selected.row;
+				ender.col = play.selected.col;
+				play.panel[play.selected.row][play.selected.col] = ender; 
+				play.panel[row][col] = starter;
+			}
 			
 			if(play.selected.row !== row){
 				direction = starter.y - enderY < 0? 1 : -1;
@@ -272,12 +280,7 @@ function GamePlay(){
 							//stop animation
 							play.field.update = null;
 							//change piece position in panel
-							starter.row = row;
-							starter.col = col;
-							ender.row = play.selected.row;
-							ender.col = play.selected.col;
-							play.panel[play.selected.row][play.selected.col] = ender; 
-							play.panel[row][col] = starter;
+							resetPiece();
 							//swap check
 							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col}]);
 						}else{
@@ -285,12 +288,7 @@ function GamePlay(){
 							starter.y = enderY;
 							ender.y = starterY;
 							//change piece position in panel
-							starter.row = row;
-							starter.col = col;
-							ender.row = play.selected.row;
-							ender.col = play.selected.col;
-							play.panel[play.selected.row][play.selected.col] = ender; 
-							play.panel[row][col] = starter;
+							resetPiece();
 							//stop animation
 							play.field.update = null;
 							//turn off picker
@@ -324,12 +322,7 @@ function GamePlay(){
 							//stop animation
 							play.field.update = null;
 							//change piece position in panel
-							starter.row = row;
-							starter.col = col;
-							ender.row = play.selected.row;
-							ender.col = play.selected.col;
-							play.panel[play.selected.row][play.selected.col] = ender; 
-							play.panel[row][col] = starter;
+							resetPiece();
 							//push in check array
 							play.swapCheck([{r:play.selected.row, c:play.selected.col}, {r:row, c:col} ]);
 						}else{
@@ -337,12 +330,7 @@ function GamePlay(){
 							starter.x = enderX;
 							ender.x = starterX;
 							//change piece position in panel
-							starter.row = row;
-							starter.col = col;
-							ender.row = play.selected.row;
-							ender.col = play.selected.col;
-							play.panel[play.selected.row][play.selected.col] = ender; 
-							play.panel[row][col] = starter;
+							resetPiece();
 							//stop animation
 							play.field.update = null;
 							//turn off picker
@@ -434,14 +422,13 @@ function GamePlay(){
 			//reposition piece after explosion
 			var arr = array;
 			var toReload = [];
-			var tempArr = [];
 
 			var blank = {};
 			var pushed = {};
+
 			var fromTop;
 			var colIndex; 
 			var offset;
-			var speed;
 
 			//get blank index in each col that has piece exploded
 			for(var i=0, l=arr.length; i<l; i++){
@@ -456,61 +443,48 @@ function GamePlay(){
 				fromTop = arr[i].row;
 				colIndex = arr[i].col;
 				offset = 1;
-				tempArr = [];
-				alert('fromTop:'+fromTop)
+
 				while(fromTop > 0){
 					fromTop --;
+					console.log('////'+play.panel[fromTop][arr[i].col]+'///')
 					if( play.panel[fromTop][arr[i].col]){
 						if(pushed[colIndex.toString()]){
 							break;
 							
 						}else{
 							//console.log(fromTop+'/'+arr[i].col)
-							tempArr.push( play.panel[fromTop][colIndex] );	
+							toReload.push( play.panel[fromTop][colIndex] );	
 						}
 									
 					}else{
 						offset ++;
-						alert(offset)
 					}	
 				}
-				alert('end')
 				pushed[colIndex.toString()] = true;
-				console.log("offset:"+offset);
+				//console.log("offset:"+offset);
 
-				for(var y=0, yl=tempArr.length; y<yl; y++){
-					//reset row, col index of pieces that are already in panel
-					tempArr[y].row = tempArr[y].row + blank[colIndex.toString()];
-					play.panel[tempArr[y].row][colIndex] = tempArr[y];
-				}
-
-				//generate new piece && set their row, col index in panel
-				play.panel[offset][colIndex] = new Piece().startupPiece(offset, colIndex);
-				play.panel[offset][colIndex].y = play.panel[offset][colIndex].y - (blank[colIndex.toString()] - offset +2)*46;
-				console.log(play.panel[offset][colIndex].y+'++++++++++')
-				tempArr.push(play.panel[offset][colIndex]);
-				
-
-				toReload = toReload.concat(tempArr);
+				toReload.push(new Piece().startupPiece(-offset, colIndex))
 
 			}
-			//console.log(toReload)
-			/*
+
+			//reset row, col index of pieces to be reload
+			for(var i=0, l=toReload.length; i<l; i++){
+				toReload[i].row = toReload[i].row + blank[toReload[i].col.toString()];
+				play.panel[toReload[i].row][toReload[i].col] = toReload[i];
+			}
+
 			for(var i=0, l=toReload.length; i<l; i++){
 				//add update method to let piece drop
 				play.pieceDrop(toReload[i]);
 			}
-			*/
 
 		},
 
 		pieceDrop : function(piece){
-			var speed = 50;
-			console.log(304 + 46*piece.row + '/'+piece.y)
 
 			piece.update = function(dt, context, xScroll, yScroll){
 				if(piece.y < 304 + 46*piece.row){
-					piece.y = piece.y + speed*dt;
+					piece.y = piece.y + 500*dt;
 				}else{
 					piece.y = 304 + 46*piece.row;
 					piece.update = null;
