@@ -118,7 +118,7 @@ function GamePlay(){
 
 		init : function(){
 			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 3);
-			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 2, 2, 4);
+			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 4, 2, 2);
 			mascot.animal.update = mascot.update;
 		},
 		
@@ -174,7 +174,7 @@ function GamePlay(){
 		background : null,
 		field : null,
 		picker : null,
-		panel : [8],
+		panel : new Array(16),
 		toExplode : [],
 
 		selected : null, 
@@ -185,13 +185,12 @@ function GamePlay(){
 			play.field = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 724, 368, 368, 119, 304, 1);
 			play.picker = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.panels, 0, 416, 58, 58, 520, 400, 4, 2, 4)
 
-			var xPosition, yPosition;
-			for(var i=0; i<8; i++){
-				play.panel[i] = [];
-				for(var j=0; j<8; j++){
-					xPosition = 119 + j*46;
-					yPosition = 304 + i*46;
-					play.panel[i].push(new Piece().startupPiece(i, j)) 
+			for(var i=0; i<16; i++){
+				play.panel[i] = new Array(8);
+				if(i < 8){
+					for(var j=0; j<8; j++){
+						play.panel[i][j] = new Piece().startupPiece(i, j);
+					}
 				}
 			}
 
@@ -210,8 +209,9 @@ function GamePlay(){
 		},
 
 		pieceClick : function(event){
-			var rowIndex = Math.floor( (event.offsetY - play.field.y) / 46);
+			var rowIndex = Math.floor( ( play.field.y + play.field.height - event.offsetY ) / 46);
 			var colIndex = Math.floor( (event.offsetX - play.field.x) / 46);
+			//console.log('row:'+rowIndex+'/'+'col:'+colIndex);
 			var targetPiece = play.panel[rowIndex][colIndex];
 			
 			if( rowIndex >= 0 && rowIndex < 8 && colIndex >= 0 && colIndex <8){
@@ -302,9 +302,7 @@ function GamePlay(){
 		},
 
 		swapCheck : function(starter, ender){
-			var toExplode = [];
-			toExplode = toExplode.concat(play.pieceCheck(starter));
-			toExplode = toExplode.concat(play.pieceCheck(ender));
+			var toExplode = play.pieceCheck(starter).concat(play.pieceCheck(ender));
 			if(toExplode.length > 0){
 				play.pieceExplode(toExplode);
 			}else{
@@ -392,7 +390,7 @@ function GamePlay(){
 			           		this.shutdownPiece();
 			           		if(!exploded){
 			           			exploded = true;	
-			           			play.pieceReload(array);
+			           			//play.pieceReload(array);
 			           		}			
 				        }
 			           	this.currentFrame %= this.frameCount;
@@ -449,8 +447,9 @@ function GamePlay(){
 			}
 			
 			//reset row, col index of pieces to be reload
-			for(var i=0, l=toReload.length; i<l; i++){
+			for(var i=0, l=toReload.length; i<l; i++){	
 				toReload[i].row = toReload[i].row + blank[toReload[i].col.toString()];
+				console.log('reload [i]:'+toReload[i].row+'/'+toReload[i].col);
 				play.panel[toReload[i].row][toReload[i].col] = toReload[i];
 			}
 
@@ -458,22 +457,39 @@ function GamePlay(){
 		},
 
 		pieceDrop : function(array){
-			var done = [];
+
 			play.field.update = function(dt, context, xScroll, yScroll){
 				var allDone = true;
 				for(var i=0, l=array.length; i<l; i++){
 					if(array[i].y + 500*dt < 304 + 46*array[i].row){
-						array[i].y = array[i].y + 200*dt;
+						array[i].y = array[i].y + 500*dt;
 						allDone = false;
 					}else{
 						array[i].y = 304 + 46*array[i].row;
 					}
 				}
 				if(allDone){
-					play.background.update = null;
+					play.field.update = null;
 					play.field.mouseclick = play.pieceClick;
+					play.aftermath(array);
 				}
 			}
+
+		},
+
+		aftermath : function(array){
+			var toExplode = [];
+			for(var i=0, l=array.length; i<l; i++){
+				toExplode = toExplode.concat(play.pieceCheck(array[i]));
+			}
+			//toExplode = toExplode.unique();
+			if(toExplode.length > 0){
+				console.log('aftermath');
+				play.pieceExplode(toExplode);
+			}
+		},
+
+		movableCheck : function(array){
 
 		},
 

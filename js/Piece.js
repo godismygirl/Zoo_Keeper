@@ -6,7 +6,7 @@ function Piece(){
 	this.startupPiece = function(x, y){
 		var i = parseInt(8*Math.random());
 		xPosition = 119 + y*46;
-		yPosition = 304 + x*46;
+		yPosition = 626 - x*46;
 		this.row = x;
 		this.col = y;
 		this.id = i; 
