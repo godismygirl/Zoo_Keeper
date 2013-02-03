@@ -32,8 +32,8 @@ function GamePlay(){
 		init : function(){
 			g_score = 0;
 			score.total = new GameFont().startupGameFont('0', 'L', 'right', 480, 20, 3);
-			score.text = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 504, 96, 24, 80, 240, 3);
-			score.level = new GameFont().startupGameFont('1', 'S-yellow', 'left', 178, 240, 3);
+			score.text = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 504, 96, 24, 80, 240, 4);
+			score.level = new GameFont().startupGameFont('1', 'S-yellow', 'left', 178, 240, 4);
 		},
 
 		updateScore : function(int){
@@ -201,6 +201,7 @@ function GamePlay(){
 			play.picker.x = piece.x - 6;
 			play.picker.y = piece.y - 6;
 			play.selected = piece;
+			console.log('['+piece.row+']['+piece.col+']')
 		},
 
 		pickerOff : function(){
@@ -213,12 +214,13 @@ function GamePlay(){
 			var colIndex = Math.floor( (event.offsetX - play.field.x) / 46);
 			//console.log('row:'+rowIndex+'/'+'col:'+colIndex);
 			var targetPiece = play.panel[rowIndex][colIndex];
-			
+			//console.log(targetPiece)
 			if( rowIndex >= 0 && rowIndex < 8 && colIndex >= 0 && colIndex <8){
 
 				if(!play.selected){
 					play.pickerOn( targetPiece );
 					targetPiece.wink();
+					
 				}else if( !(rowIndex === play.selected.row && colIndex === play.selected.col) ){
 					play.selected.winkOff();
 					if(Math.abs(rowIndex - play.selected.row) + Math.abs(colIndex - play.selected.col) > 1){
@@ -258,7 +260,6 @@ function GamePlay(){
 
 				play.panel[ender.row][ender.col] = ender; 
 				play.panel[starter.row][starter.col] = starter;
-
 				play.field.update = null;
 				if(!reverse){
 					play.swapCheck(starter, ender);
@@ -302,61 +303,104 @@ function GamePlay(){
 		},
 
 		swapCheck : function(starter, ender){
-			var toExplode = play.pieceCheck(starter).concat(play.pieceCheck(ender));
+			var toExplode = play.pieceCheck([starter, ender]);
 			if(toExplode.length > 0){
 				play.pieceExplode(toExplode);
 			}else{
-				play.pickerOff();
+				
 				play.swap(ender, starter, true);
+				play.pickerOff();
 			}
 		},
 
-		pieceCheck : function(piece){
+		pieceCheck : function(array){
 			var toExplode = [];
-			var verticalCheckResult = [];
-			var horizontalCheckResult = [];
-			var rowIndex = piece.row;
-			var colIndex = piece.col;
 
-			//vertical check
-			if(rowIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
-				verticalCheckResult.push(play.panel[rowIndex - 1][colIndex]);
-				if(rowIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 2][colIndex].id){
-					verticalCheckResult.push(play.panel[rowIndex - 2][colIndex]);
+			for(var i=0, l=array.length; i<l; i++){
+
+				if(array[i].enrolled){
+					break;
 				}
+
+				var verticalCheckResult = [];
+				var horizontalCheckResult = [];
+				var rowIndex = array[i].row;
+				var colIndex = array[i].col;
+
+				//vertical check
+				while(rowIndex > 0){
+					console.log('||111||'+play.panel[rowIndex][colIndex].id)
+					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
+						if(!play.panel[rowIndex - 1][colIndex].enrolled){
+							verticalCheckResult.push(play.panel[rowIndex - 1][colIndex]);
+							play.panel[rowIndex - 1][colIndex].enrolled = true;
+						}
+					}else{
+						break;
+					}
+					rowIndex --;
+				}
+				rowIndex = array[i].row;
+
+				while(rowIndex < 7){
+					console.log('||222||'+play.panel[rowIndex][colIndex].id)
+					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
+						if(!play.panel[rowIndex + 1][colIndex].enrolled){
+							verticalCheckResult.push(play.panel[rowIndex + 1][colIndex]);
+							play.panel[rowIndex + 1][colIndex].enrolled = true;
+						}
+					}else{
+						break;
+					}
+					rowIndex ++;
+				}
+				rowIndex = array[i].row;
+
+				//horizontal check
+				while(colIndex > 0){
+					console.log('||333||'+play.panel[rowIndex][colIndex].id)
+					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
+						if(!play.panel[rowIndex][colIndex - 1].enrolled){
+							horizontalCheckResult.push(play.panel[rowIndex][colIndex - 1]);
+							play.panel[rowIndex][colIndex - 1].enrolled = true;
+						}
+					}else{
+						break;
+					}
+					colIndex --;
+				}
+				colIndex = array[i].col;
+
+				while(colIndex < 7){
+					console.log('||444||'+play.panel[rowIndex][colIndex].id)
+					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
+						if(!play.panel[rowIndex][colIndex + 1].enrolled){
+							horizontalCheckResult.push(play.panel[rowIndex][colIndex + 1]);
+							play.panel[rowIndex][colIndex + 1].enrolled = true;
+						}
+					}else{
+						break;
+					}
+					colIndex ++;
+				}
+				colIndex = array[i].col;
+
+				if( !(verticalCheckResult.length < 2 && horizontalCheckResult.length < 2)){
+					//console.log('boom')
+					if(verticalCheckResult.length >= 2){
+						toExplode = toExplode.concat(verticalCheckResult);
+					}
+					if(horizontalCheckResult.length >= 2){
+						toExplode = toExplode.concat(horizontalCheckResult);
+					}
+					toExplode.push(play.panel[rowIndex][colIndex]);
+					play.panel[rowIndex][colIndex].enrolled = true;
+				}
+
 			}
 
-			if(rowIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
-				verticalCheckResult.push(play.panel[rowIndex + 1][colIndex]);
-				if(rowIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 2][colIndex].id){
-					verticalCheckResult.push(play.panel[rowIndex + 2][colIndex]);
-				}
-			}
-
-			//horizontal check
-			if(colIndex > 0 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
-				horizontalCheckResult.push(play.panel[rowIndex][colIndex - 1]);
-				if(colIndex > 1 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 2].id){
-					horizontalCheckResult.push(play.panel[rowIndex][colIndex - 2]);
-				}
-			}
-
-			if(colIndex < 7 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
-				horizontalCheckResult.push(play.panel[rowIndex][colIndex + 1]);
-				if(colIndex < 6 && play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 2].id){
-					horizontalCheckResult.push(play.panel[rowIndex][colIndex + 2]);
-				}
-			}
-
-			if( !(verticalCheckResult.length < 2 && horizontalCheckResult.length < 2)){
-				//console.log('boom')
-				if(verticalCheckResult.length >= 2){
-					toExplode = toExplode.concat(verticalCheckResult);
-				}
-				if(horizontalCheckResult.length >= 2){
-					toExplode = toExplode.concat(horizontalCheckResult);
-				}
-				toExplode.push(play.panel[rowIndex][colIndex]);
+			for(var i=0, l=toExplode.length; i<l; i++){
+				toExplode[i].enrolled = null;
 			}
 
 			return toExplode;
@@ -364,96 +408,111 @@ function GamePlay(){
 		},
 
 		pieceExplode : function(array){
-			var bomb;
-			var exploded = false;
+			var exploded;
 			play.field.mouseclick = null;
 
 			for(var i=0, l=array.length; i<l; i++){
-				bomb = array[i];
-
-				bomb.currentFrame = 0;
-				bomb.frameWidth = bomb.width;
-				bomb.frameCount = 4;
-				bomb.timeBetweenFrames = 0.125;
-				bomb.timeSinceLastFrame = bomb.timeBetweenFrames;
-
-				bomb.update = function(dt, context, xScroll, yScroll){
-					this.sx = this.frameWidth * this.currentFrame + 138;
-			        this.timeSinceLastFrame -= dt;
-			        if (this.timeSinceLastFrame <= 0)
-			        {
-			           	this.timeSinceLastFrame = this.timeBetweenFrames;
-			           	++this.currentFrame;
-			           	//animate explode once
-			           	if(this.currentFrame === 4){
-			           		//console.log('set to null:'+this.row+'/'+this.col)
-			           		this.shutdownPiece();
-			           		if(!exploded){
-			           			exploded = true;	
-			           			//play.pieceReload(array);
-			           		}			
-				        }
-			           	this.currentFrame %= this.frameCount;
-			        }
-				}
+				array[i].currentFrame = 0;
+				array[i].frameWidth = array[i].width;
+				array[i].frameCount = 4;
+				array[i].timeBetweenFrames = 0.125;
+				array[i].timeSinceLastFrame = array[i].timeBetweenFrames;
+	
 			}
+
+			play.field.update = function(dt, context, xScroll, yScroll){
+				exploded = true;
+
+				for(var i=0, l=array.length; i<l; i++){
+					array[i].sx = array[i].frameWidth * array[i].currentFrame + 138;
+			        array[i].timeSinceLastFrame -= dt;
+			        if (array[i].timeSinceLastFrame <= 0)
+			        {
+			           	array[i].timeSinceLastFrame = array[i].timeBetweenFrames;
+			           	++array[i].currentFrame;
+			           	//animate explode once
+			           	if(array[i].currentFrame === 4){
+			           		array[i].shutdownPiece();
+			           		play.panel[array[i].row][array[i].col] = null;		
+				        }else{
+				        	exploded = false;
+				        }
+			           	array[i].currentFrame %= array[i].frameCount;
+			        }else{
+			        	exploded = false;
+			        }
+		        }
+
+		        if(exploded){
+		        	play.field.update = null;
+		        	play.pieceReload(array);
+		        }
+			}
+
 			play.pickerOff();
 		},
 
 		pieceReload : function(array){
-			//reposition piece after explosion
-			var arr = array;
+			console.log('lenght:'+array.length)
+			var rowIndex, colIndex, pieceLoaded;
 			var toReload = [];
+			for(var i=0, l=array.length; i<l; i++){
+				pieceLoaded = false;
+				rowIndex = array[i].row;
+				colIndex = array[i].col;
+				while( rowIndex < 15){
+					rowIndex ++;
+					target = play.panel[rowIndex][colIndex];
+					if(target){
 
-			var blank = {};
-			var pushed = {};
-
-			var fromTop;
-			var colIndex; 
-			var offset;
-
-			for(var i=0, l=arr.length; i<l; i++){
-				//get blank index in each col that has piece exploded
-				if(blank[arr[i].col.toString()]){
-					blank[arr[i].col.toString()] ++;
-				}else{
-					blank[arr[i].col.toString()] = 1;
-				}
-				//remove piece from panel
-				play.panel[arr[i].row][arr[i].col] = false;
-			}
-
-			for(var i=0, l=arr.length; i<l; i++){
-				fromTop = arr[i].row;
-				colIndex = arr[i].col;
-				offset = 1;
-
-				while(fromTop > 0){
-					fromTop --;
-					if( play.panel[fromTop][arr[i].col]){
-						if(pushed[colIndex.toString()]){
-							break;
+						if(target.downStep){
+							target.downStep = target.downStep + 1;
 						}else{
-							//console.log(fromTop+'/'+arr[i].col)
-							toReload.push( play.panel[fromTop][colIndex] );	
-						}			
+							target.downStep = 1;
+						}
+
+						if(!target.enrolled){
+							//console.log(rowIndex+'--------'+colIndex)
+							toReload.push(target);
+							target.enrolled = true;
+						}
+						
 					}else{
-						offset ++;
-					}	
+
+						if( rowIndex>7 && !pieceLoaded){
+							play.panel[rowIndex][colIndex] = new Piece().startupPiece(rowIndex, colIndex);
+							target = play.panel[rowIndex][colIndex];
+							//console.log(rowIndex+'//////'+colIndex)
+							if(play.panel[rowIndex - 1][colIndex] && play.panel[rowIndex - 1][colIndex].downStep){
+								target.downStep = play.panel[rowIndex - 1][colIndex].downStep;
+							}else{
+								target.downStep = 1;
+							}
+							target.enrolled = true;
+							pieceLoaded = true;
+							toReload.push(target);
+						}
+					}
 				}
-				pushed[colIndex.toString()] = true;
-				//console.log("offset:"+offset);
-				toReload.push(new Piece().startupPiece(-offset, colIndex))
 			}
-			
+
 			//reset row, col index of pieces to be reload
-			for(var i=0, l=toReload.length; i<l; i++){	
-				toReload[i].row = toReload[i].row + blank[toReload[i].col.toString()];
-				console.log('reload [i]:'+toReload[i].row+'/'+toReload[i].col);
+			for(var i=0, l=toReload.length; i<l; i++){
+				//console.log('['+toReload[i].row+']['+toReload[i].col+']');
+				//console.log(toReload[i].downStep);
+				play.panel[toReload[i].row][toReload[i].col] = null;
+				toReload[i].row = toReload[i].row - toReload[i].downStep;
+				
+			}
+
+			for(var i=0, l=toReload.length; i<l; i++){
 				play.panel[toReload[i].row][toReload[i].col] = toReload[i];
+				toReload[i].downStep = null;
+				toReload[i].enrolled = null;
 			}
 
 			play.pieceDrop(toReload);
+			
 		},
 
 		pieceDrop : function(array){
@@ -461,11 +520,11 @@ function GamePlay(){
 			play.field.update = function(dt, context, xScroll, yScroll){
 				var allDone = true;
 				for(var i=0, l=array.length; i<l; i++){
-					if(array[i].y + 500*dt < 304 + 46*array[i].row){
+					if(array[i].y + 500*dt < 626 - 46*array[i].row){
 						array[i].y = array[i].y + 500*dt;
 						allDone = false;
 					}else{
-						array[i].y = 304 + 46*array[i].row;
+						array[i].y = 626 - 46*array[i].row;
 					}
 				}
 				if(allDone){
@@ -478,11 +537,7 @@ function GamePlay(){
 		},
 
 		aftermath : function(array){
-			var toExplode = [];
-			for(var i=0, l=array.length; i<l; i++){
-				toExplode = toExplode.concat(play.pieceCheck(array[i]));
-			}
-			//toExplode = toExplode.unique();
+			var toExplode = play.pieceCheck(array);
 			if(toExplode.length > 0){
 				console.log('aftermath');
 				play.pieceExplode(toExplode);

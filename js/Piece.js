@@ -1,16 +1,14 @@
 function Piece(){
-	this.type = null;
-	this.explodingOffset = 0;
 	this.row = null;
 	this.col = null;
 	this.startupPiece = function(x, y){
-		var i = parseInt(8*Math.random());
+		var i = Math.floor(Math.random()*8 + 1);;
 		xPosition = 119 + y*46;
 		yPosition = 626 - x*46;
 		this.row = x;
 		this.col = y;
 		this.id = i; 
-		this.startupVisualGameObject(g_ResourceManager.panels, 0, i*46, 46, 46, xPosition, yPosition, 2);
+		this.startupVisualGameObject(g_ResourceManager.panels, 0, (i-1)*46, 46, 46, xPosition, yPosition, 2);
 		return this;
 	}
 
