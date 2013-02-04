@@ -117,8 +117,8 @@ function GamePlay(){
 		},
 
 		init : function(){
-			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 1);
-			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 1, 2, 2);
+			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 3);
+			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 4, 2, 2);
 			mascot.animal.update = mascot.update;
 		},
 		
@@ -307,26 +307,28 @@ function GamePlay(){
 			if(toExplode.length > 0){
 				play.pieceExplode(toExplode);
 			}else{
-				
 				play.swap(ender, starter, true);
 				play.pickerOff();
 			}
 		},
 
 		pieceCheck : function(array){
+
 			var toExplode = [];
-
+			var verticalCheckResult, horizontalCheckResult, rowIndex, colIndex;
+			
 			for(var i=0, l=array.length; i<l; i++){
-
+				//console.log('(row)'+array[i].row+' '+'(col)'+array[i].col+' '+'(id)'+array[i].id);
 				if(array[i].enrolled){
+					console.log('break')
 					break;
 				}
 
-				var verticalCheckResult = [];
-				var horizontalCheckResult = [];
-				var rowIndex = array[i].row;
-				var colIndex = array[i].col;
-
+				verticalCheckResult = [];
+				horizontalCheckResult = [];
+				rowIndex = array[i].row;
+				colIndex = array[i].col;
+				
 				//vertical check
 				while(rowIndex > 0){
 					//console.log('||111||'+play.panel[rowIndex][colIndex].id)
@@ -339,6 +341,7 @@ function GamePlay(){
 						break;
 					}
 					rowIndex --;
+					
 				}
 				rowIndex = array[i].row;
 
@@ -353,6 +356,7 @@ function GamePlay(){
 						break;
 					}
 					rowIndex ++;
+					
 				}
 				rowIndex = array[i].row;
 
@@ -368,6 +372,7 @@ function GamePlay(){
 						break;
 					}
 					colIndex --;
+					
 				}
 				colIndex = array[i].col;
 
@@ -382,35 +387,34 @@ function GamePlay(){
 						break;
 					}
 					colIndex ++;
+					
 				}
 				colIndex = array[i].col;
-
-				if( !(verticalCheckResult.length < 2 && horizontalCheckResult.length < 2)){
-					//console.log('boom')
-					if(verticalCheckResult.length >= 2){
-						toExplode = toExplode.concat(verticalCheckResult);
+				
+				if(verticalCheckResult.length < 2){
+					verticalCheckResult[0] && (verticalCheckResult[0].enrolled = null);		
+				}else{
+					toExplode = toExplode.concat(verticalCheckResult);
+					if(!array[i].enrolled){
+						toExplode.push(array[i]);
+						array[i].enrolled = true;
 					}
-					if(horizontalCheckResult.length >= 2){
-						toExplode = toExplode.concat(horizontalCheckResult);
-					}
-					toExplode.push(play.panel[rowIndex][colIndex]);
-					play.panel[rowIndex][colIndex].enrolled = true;
 				}
-
+				
+				//console.log('i='+i)
+				if(horizontalCheckResult.length < 2){
+					horizontalCheckResult[0] && (horizontalCheckResult[0].enrolled = null);
+				}else{
+					toExplode = toExplode.concat(horizontalCheckResult);
+					if(!array[i].enrolled){
+						toExplode.push(array[i]);
+						array[i].enrolled = true;
+					}
+				}
+				
+				console.log('i='+i)
 			}
 
-			for(var i=0, l=toExplode.length; i<l; i++){
-				toExplode[i].enrolled = null;
-			}
-			/************************************************************
-			debug
-			******************************************************************/
-			for(var i=0, l=toExplode.length; i<l; i++){
-				console.log('|row:'+toExplode[i].row+'|col:'+toExplode[i].col+'|id:'+toExplode[i].id)
-			}
-			/************************************************************
-			debug end
-			******************************************************************/
 			return toExplode;
 
 		},
@@ -540,19 +544,9 @@ function GamePlay(){
 				if(allDone){
 					play.field.update = null;
 					play.field.mouseclick = play.pieceClick;
-					//play.aftermath(array);
+					play.aftermath(array);
 				}
 			}
-			/************debug************************************************
-			
-			******************************************************************/
-			/*
-			for(var i=0, l=array.length; i<l; i++){
-				console.log('||row:'+array[i].row+'||col:'+array[i].col+'||id:'+array[i].id)
-			}
-			/************************************************************
-			debug end
-			******************************************************************/
 		},
 
 		aftermath : function(array){
