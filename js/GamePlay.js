@@ -117,8 +117,8 @@ function GamePlay(){
 		},
 
 		init : function(){
-			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 3);
-			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 4, 2, 2);
+			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 1);
+			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 1, 2, 2);
 			mascot.animal.update = mascot.update;
 		},
 		
@@ -201,7 +201,7 @@ function GamePlay(){
 			play.picker.x = piece.x - 6;
 			play.picker.y = piece.y - 6;
 			play.selected = piece;
-			console.log('['+piece.row+']['+piece.col+']')
+			console.log('['+piece.row+']['+piece.col+']'+'id:'+piece.id)
 		},
 
 		pickerOff : function(){
@@ -329,7 +329,7 @@ function GamePlay(){
 
 				//vertical check
 				while(rowIndex > 0){
-					console.log('||111||'+play.panel[rowIndex][colIndex].id)
+					//console.log('||111||'+play.panel[rowIndex][colIndex].id)
 					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex - 1][colIndex].id){
 						if(!play.panel[rowIndex - 1][colIndex].enrolled){
 							verticalCheckResult.push(play.panel[rowIndex - 1][colIndex]);
@@ -343,7 +343,7 @@ function GamePlay(){
 				rowIndex = array[i].row;
 
 				while(rowIndex < 7){
-					console.log('||222||'+play.panel[rowIndex][colIndex].id)
+					//console.log('||222||'+play.panel[rowIndex][colIndex].id)
 					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex + 1][colIndex].id){
 						if(!play.panel[rowIndex + 1][colIndex].enrolled){
 							verticalCheckResult.push(play.panel[rowIndex + 1][colIndex]);
@@ -358,7 +358,7 @@ function GamePlay(){
 
 				//horizontal check
 				while(colIndex > 0){
-					console.log('||333||'+play.panel[rowIndex][colIndex].id)
+					//console.log('||333||'+play.panel[rowIndex][colIndex].id)
 					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex - 1].id){
 						if(!play.panel[rowIndex][colIndex - 1].enrolled){
 							horizontalCheckResult.push(play.panel[rowIndex][colIndex - 1]);
@@ -372,7 +372,7 @@ function GamePlay(){
 				colIndex = array[i].col;
 
 				while(colIndex < 7){
-					console.log('||444||'+play.panel[rowIndex][colIndex].id)
+					//console.log('||444||'+play.panel[rowIndex][colIndex].id)
 					if(play.panel[rowIndex][colIndex].id === play.panel[rowIndex][colIndex + 1].id){
 						if(!play.panel[rowIndex][colIndex + 1].enrolled){
 							horizontalCheckResult.push(play.panel[rowIndex][colIndex + 1]);
@@ -402,7 +402,15 @@ function GamePlay(){
 			for(var i=0, l=toExplode.length; i<l; i++){
 				toExplode[i].enrolled = null;
 			}
-
+			/************************************************************
+			debug
+			******************************************************************/
+			for(var i=0, l=toExplode.length; i<l; i++){
+				console.log('|row:'+toExplode[i].row+'|col:'+toExplode[i].col+'|id:'+toExplode[i].id)
+			}
+			/************************************************************
+			debug end
+			******************************************************************/
 			return toExplode;
 
 		},
@@ -432,7 +440,8 @@ function GamePlay(){
 			           	++array[i].currentFrame;
 			           	//animate explode once
 			           	if(array[i].currentFrame === 4){
-			           		array[i].shutdownPiece();
+			           		//array[i].shutdownPiece();
+			           		array[i].isBomb = true;
 			           		play.panel[array[i].row][array[i].col] = null;		
 				        }else{
 				        	exploded = false;
@@ -453,7 +462,7 @@ function GamePlay(){
 		},
 
 		pieceReload : function(array){
-			console.log('lenght:'+array.length)
+			//console.log('1:'+array.length)
 			var rowIndex, colIndex, pieceLoaded;
 			var toReload = [];
 			for(var i=0, l=array.length; i<l; i++){
@@ -477,24 +486,25 @@ function GamePlay(){
 							target.enrolled = true;
 						}
 						
-					}else{
-
-						if( rowIndex>7 && !pieceLoaded){
-							play.panel[rowIndex][colIndex] = new Piece().startupPiece(rowIndex, colIndex);
-							target = play.panel[rowIndex][colIndex];
-							//console.log(rowIndex+'//////'+colIndex)
-							if(play.panel[rowIndex - 1][colIndex] && play.panel[rowIndex - 1][colIndex].downStep){
-								target.downStep = play.panel[rowIndex - 1][colIndex].downStep;
-							}else{
-								target.downStep = 1;
-							}
-							target.enrolled = true;
-							pieceLoaded = true;
-							toReload.push(target);
-						}
 					}
+
+					if( !target && rowIndex > 7 ){
+						play.panel[rowIndex][colIndex] = array[i].refresh(rowIndex, colIndex);
+						target = play.panel[rowIndex][colIndex];
+						//console.log(rowIndex+'//////'+colIndex)
+						if(play.panel[rowIndex - 1][colIndex] && play.panel[rowIndex - 1][colIndex].downStep){
+							target.downStep = play.panel[rowIndex - 1][colIndex].downStep;
+						}else{
+							target.downStep = 1;
+						}
+						target.enrolled = true;
+						toReload.push(target);
+						break;
+					}
+	
 				}
 			}
+			console.log('---'+toReload.length+'----')
 
 			//reset row, col index of pieces to be reload
 			for(var i=0, l=toReload.length; i<l; i++){
@@ -530,10 +540,19 @@ function GamePlay(){
 				if(allDone){
 					play.field.update = null;
 					play.field.mouseclick = play.pieceClick;
-					play.aftermath(array);
+					//play.aftermath(array);
 				}
 			}
-
+			/************debug************************************************
+			
+			******************************************************************/
+			/*
+			for(var i=0, l=array.length; i<l; i++){
+				console.log('||row:'+array[i].row+'||col:'+array[i].col+'||id:'+array[i].id)
+			}
+			/************************************************************
+			debug end
+			******************************************************************/
 		},
 
 		aftermath : function(array){

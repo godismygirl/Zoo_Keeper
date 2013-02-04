@@ -12,6 +12,25 @@ function Piece(){
 		return this;
 	}
 
+	this.refresh = function(row, col){
+		var i = Math.floor(Math.random()*8 + 1);
+		this.sx = 0;
+		this.sy = (i-1)*46;
+		this.x = 119 + col*46;
+		this.y = 626 - row*46;
+		this.row = row;
+		this.col = col;
+		this.id = i;
+
+		this.currentFrame = null;
+		this.frameWidth = null;
+		this.frameCount = null;
+		this.timeBetweenFrames = null;
+		this.timeSinceLastFrame = null;
+		this.update = null;
+		return this;
+	}
+
 	this.shutdownPiece = function(){
 		this.shutdownVisualGameObject();
 	}
