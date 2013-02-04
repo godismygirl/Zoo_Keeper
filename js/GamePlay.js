@@ -401,7 +401,6 @@ function GamePlay(){
 					}
 				}
 				
-				//console.log('i='+i)
 				if(horizontalCheckResult.length < 2){
 					horizontalCheckResult[0] && (horizontalCheckResult[0].enrolled = null);
 				}else{
@@ -412,7 +411,6 @@ function GamePlay(){
 					}
 				}
 				
-				console.log('i='+i)
 			}
 
 			return toExplode;
