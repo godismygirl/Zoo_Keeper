@@ -20,12 +20,27 @@ function StageChange(){
 		this.quota = new GameFont().startupGameFont( (level * 3 + levelStage - 1).toString(), 'L', 'left', _x+45, 476, 7 );
 
 		this.level = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 340, 422, 176, 64, -240, 354, 7);
-		this.currentLevel = new GameFont().startupGameFont(level.toString(), 'XL', 'left', -55, 354, 6);	
+		this.currentLevel = new GameFont().startupGameFont(level.toString(), 'XL', 'left', -55, 354, 6);
+
+		this.update = this.slideIn;	
 		
 		return this;
 	}
 
-	this.animate = function(){
+	this.reset = function(level, levelStage){
+		var _x;
+		if(level*3 + levelStage - 1 > 9){
+			_x = 630;
+		}else{
+			_x = 650;
+		}
+		this.x = 523;
+		this.multi.x = _x;
+		this.quota.x = _x+45;
+		this.quota.updateGameFont( (level * 3 + levelStage - 1).toString() );
+		this.level.x = -240;
+		this.currentLevel.x = -55;
+		this.currentLevel.updateGameFont( level.toString() );
 		this.update = this.slideIn;
 	}
 

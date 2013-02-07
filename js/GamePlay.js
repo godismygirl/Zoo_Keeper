@@ -56,13 +56,13 @@ function GamePlay(){
 			/*******************
 				@param level : 			current difficult level
 				@param levelStage : 	current stage in current difficult level( total 3 stages in each difficult level )
-				@param speed : 			animation speed ( pxiels / second )
 			********************/
 			if(upgrade.stage){
-				upgrade.stage.shutDownStageChange();
+				upgrade.stage.reset(level, levelStage);
+			}else{
+				upgrade.stage = new StageChange().startupStageChange(level, levelStage);
 			}
-			upgrade.stage = new StageChange().startupStageChange(level, levelStage);
-			upgrade.stage.animate();
+
 		}
 
 	}
@@ -176,7 +176,7 @@ function GamePlay(){
 		picker : null,
 		panel : new Array(16),
 		toExplode : [],
-
+		movable : [],
 		selected : null, 
 
 
@@ -413,6 +413,12 @@ function GamePlay(){
 				
 			}
 
+			if(toExplode.length > 0){
+				for(var i=0, l=toExplode.length; i<l; i++){
+					toExplode[i].enrolled = null;
+				}
+			}
+
 			return toExplode;
 
 		},
@@ -443,7 +449,7 @@ function GamePlay(){
 			           	//animate explode once
 			           	if(array[i].currentFrame === 4){
 			           		//array[i].shutdownPiece();
-			           		array[i].isBomb = true;
+			           		//array[i].isBomb = true;
 			           		play.panel[array[i].row][array[i].col] = null;		
 				        }else{
 				        	exploded = false;
@@ -506,7 +512,7 @@ function GamePlay(){
 	
 				}
 			}
-			console.log('---'+toReload.length+'----')
+			//console.log('---'+toReload.length+'----')
 
 			//reset row, col index of pieces to be reload
 			for(var i=0, l=toReload.length; i<l; i++){
@@ -541,8 +547,8 @@ function GamePlay(){
 				}
 				if(allDone){
 					play.field.update = null;
-					play.field.mouseclick = play.pieceClick;
 					play.aftermath(array);
+					
 				}
 			}
 		},
@@ -552,15 +558,153 @@ function GamePlay(){
 			if(toExplode.length > 0){
 				console.log('aftermath');
 				play.pieceExplode(toExplode);
+			}else{
+				play.movableCheck();
+				play.field.mouseclick = play.pieceClick;
 			}
 		},
 
-		movableCheck : function(array){
+		movableCheck : function(){
+			var movable = [];
+			var current, currentRow, currentCol, swapTarget, swapTargetRow, swapTargetCol;
 
+			function check(tar){
+				swapTarget = tar;
+				swapTargetRow = swapTarget.row;
+				swapTargetCol = swapTarget.col;
+				//console.log('before:'+current.row+'/'+current.col);
+
+				if(current.id !== swapTarget.id){
+					//swap position before pieceCheck
+					current.row = swapTargetRow;
+					current.col = swapTargetCol;
+					swapTarget.row = currentRow;
+					swapTarget.col = currentCol;
+					play.panel[currentRow][currentCol] = swapTarget;
+					play.panel[swapTargetRow][swapTargetCol] = current;
+
+					movable = play.pieceCheck([current, swapTarget]);
+					//console.log('check result:'+movable.length)
+					//reset position
+					current.row = currentRow;
+					current.col = currentCol;
+					swapTarget.row = swapTargetRow;
+					swapTarget.col = swapTargetCol;
+					play.panel[currentRow][currentCol] = current;
+					play.panel[swapTargetRow][swapTargetCol] = swapTarget;
+
+					//console.log('after:'+current.row+'/'+current.col);
+					//console.log('*********************************************')
+
+					if(movable.length > 0){
+						console.log('yes movable')
+						play.movable = movable;
+						return true;
+					}
+				}
+			}
+
+			for(var i=0; i<8; i++){
+				for(var j=0; j<8; j++){
+					current = play.panel[i][j];
+					currentRow = current.row;
+					currentCol = current.col;
+					//rightward swap check
+					if(j < 7){
+						if(check(play.panel[i][j+1])){
+							console.log('right movable')
+							return;
+						};
+					}
+					//downward swap check
+					if(i < 7){
+						if(check(play.panel[i+1][j])){
+							console.log('top movable')
+							return;
+						};
+					}
+				}
+			}
+
+			play.movable = [];
+			console.log('no move');
+			play.rolloutPieces();
 		},
 
-		shuffle : function(){
+		rolloutPieces : function(onStageChange){
+			play.field.mouseclick = null;
 
+			var speed = 500;
+			var piece, allDone;
+			play.field.update = function(dt, context, xScroll, yScroll){
+				allDone = true;
+				for(var i=0; i<8; i++){
+					for(var j=0; j<8; j++){
+						piece = play.panel[i][j];
+						if(piece.y + speed*dt < 1026 - piece.row*46){
+							piece.y = piece.y + speed*dt;
+							if(allDone){
+								allDone = false;
+							}
+						}else{
+							piece.y = 1026 - piece.row*46;
+						}
+					}
+				}
+
+				if(allDone){
+					play.field.update = null;
+					play.field.mouseclick = play.pieceClick;
+					//reposition to the top of the play field
+					for(var i=0; i<8; i++){
+						for(var j=0; j<8; j++){
+							piece = play.panel[i][j];
+							piece.y = 226 - piece.row*46;
+						}
+					}
+					//shuffle pieces
+					play.prepareSence();
+					
+					if(onStageChange){
+						zooKeeper.nextStage();
+					}else{
+						play.rollinPieces();
+					}
+				}
+			}
+
+			
+		},
+
+		rollinPieces : function(){
+			play.field.mouseclick = null;
+			var speed = 500;
+			var piece, allDone;
+			play.field.update = function(dt, context, xScroll, yScroll){
+				allDone = true;
+				for(var i=0; i<8; i++){
+					for(var j=0; j<8; j++){
+						piece = play.panel[i][j];
+						if(piece.y + speed*dt < 626 - piece.row*46){
+							piece.y = piece.y + speed*dt;
+							if(allDone){
+								allDone = false;
+							}
+						}else{
+							piece.y = 626 - piece.row*46;
+						}
+					}
+				}
+
+				if(allDone){
+					play.field.update = null;
+					play.field.mouseclick = play.pieceClick;
+				}
+			}	
+		},
+
+		prepareSence : function(){
+			
 		}
 	}
 
@@ -590,14 +734,14 @@ function GamePlay(){
 				zooKeeper.level ++;
 			}
 			record.reset(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);
-			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
 			timer.reset(timer.limit - 5 * zooKeeper.level);
+			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
 		},
 
 		setStage : function(){
 			//callback after stage change animation, start counting, init animals .etc 
 			timer.countdown();
-			play.shuffle();
+			play.rollinPieces();
 
 		},
 

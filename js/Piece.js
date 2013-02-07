@@ -1,10 +1,11 @@
 function Piece(){
 	this.row = null;
 	this.col = null;
+	this.id = null;
 	this.startupPiece = function(x, y){
 		var i = Math.floor(Math.random()*8 + 1);;
 		xPosition = 119 + y*46;
-		yPosition = 626 - x*46;
+		yPosition = 226 - x*46;
 		this.row = x;
 		this.col = y;
 		this.id = i; 
