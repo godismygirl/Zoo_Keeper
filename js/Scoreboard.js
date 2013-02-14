@@ -6,6 +6,7 @@ function Scoreboard(){
 	this.id = 0;
 	this.quota = 0;
 	this.score = 0;
+	this.qualified = false;
 
 	this.startupScoreboard = function(animalID, quota){
 		/***********************
@@ -38,8 +39,9 @@ function Scoreboard(){
 		}
 		this.font.updateGameFont(str);
 
-		if(this.score >= this.quota){
+		if(!this.qualified && this.score >= this.quota){
 			this.qualify();
+			this.qualified = true;
 		}
 	}
 
@@ -56,10 +58,12 @@ function Scoreboard(){
 		this.score = 0;
 
 		this.background.sy = 504;
-		this.avatar.sy = animalID*42;
+		this.avatar.sx = this.id *42;
+		this.avatar.sy = 418;
 		for(var i=0,l=this.font.member.length; i<l; i++){
 			this.font.member[i].sx = 2;
 			this.font.member[i].sy = 74;
+			this.qualified = false;
 		}
 	}
 

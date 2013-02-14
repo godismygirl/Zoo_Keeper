@@ -62,16 +62,25 @@ function GameMenu()
 		switch (this.hoverOnButton)
 		{
 			case 'start' : 
-				g_ApplicationManager.gamePlay = GamePlay().init();
-				g_ApplicationManager.gameMenu.shutdownGameMenu();
+				g_ApplicationManager.fade(function(){
+					g_ApplicationManager.gamePlay = GamePlay().init();
+					g_ApplicationManager.gameMenu.shutdownGameMenu();
+				}, function(){
+					g_ApplicationManager.gamePlay.prepareStage();
+				});
+				
 				break
 			case 'guide' :
-				g_ApplicationManager.gameGuide = new GameGuide().startupGameGuide();
-				g_ApplicationManager.gameMenu.shutdownGameMenu();
+				g_ApplicationManager.fade(function(){
+					g_ApplicationManager.gameGuide = new GameGuide().startupGameGuide();
+					g_ApplicationManager.gameMenu.shutdownGameMenu();
+				});	
 				break
 			case 'rank' :
-				g_ApplicationManager.rank = new GameRank().startupGameRank();
-				g_ApplicationManager.gameMenu.shutdownGameMenu();
+				g_ApplicationManager.fade(function(){
+					g_ApplicationManager.rank = new GameRank().startupGameRank();
+					g_ApplicationManager.gameMenu.shutdownGameMenu();
+				});
 				break
 			default : 
 		}

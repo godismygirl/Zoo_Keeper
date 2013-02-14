@@ -15,12 +15,12 @@ function StageChange(){
 		}else{
 			_x = 650;
 		}
-		this.startupVisualGameObject(g_ResourceManager.main, 70, 572, 360, 150, 523, 400, 6);
-		this.multi = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 534, 34, 34, _x, 490, 7);
-		this.quota = new GameFont().startupGameFont( (level * 3 + levelStage - 1).toString(), 'L', 'left', _x+45, 476, 7 );
+		this.startupVisualGameObject(g_ResourceManager.main, 70, 572, 360, 150, 523, 400, 7);
+		this.multi = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 534, 34, 34, _x, 490, 8);
+		this.quota = new GameFont().startupGameFont( (level * 3 + levelStage - 1).toString(), 'L', 'left', _x+45, 476, 8 );
 
-		this.level = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 340, 422, 176, 64, -240, 354, 7);
-		this.currentLevel = new GameFont().startupGameFont(level.toString(), 'XL', 'left', -55, 354, 6);
+		this.level = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 340, 422, 176, 64, -240, 354, 8);
+		this.currentLevel = new GameFont().startupGameFont(level.toString(), 'XL', 'left', -55, 354, 8);
 
 		this.update = this.slideIn;	
 		
@@ -36,11 +36,11 @@ function StageChange(){
 		}
 		this.x = 523;
 		this.multi.x = _x;
-		this.quota.x = _x+45;
-		this.quota.updateGameFont( (level * 3 + levelStage - 1).toString() );
+		this.quota.updateGameFont((level * 3 + levelStage - 1).toString());
+		this.quota.setPosition(_x+45, 476);
 		this.level.x = -240;
-		this.currentLevel.x = -55;
 		this.currentLevel.updateGameFont( level.toString() );
+		this.currentLevel.setPosition(-55, 354);
 		this.update = this.slideIn;
 	}
 
@@ -53,12 +53,12 @@ function StageChange(){
 			if(this.x - this.speed * dt > 123){
 				this.x = this.x - this.speed * dt;
 				this.multi.x = this.multi.x - this.speed * dt;
-				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
+				this.quota.setPosition(- this.speed * dt, 0, true);
 			}else{
 				bgSlideEnd = true;
 				this.x = 123;
 				this.multi.x = 250;
-				this.quota.member[0].x = 295;
+				this.quota.setPosition(295, 476);
 			}
 
 		}else{
@@ -66,15 +66,12 @@ function StageChange(){
 			if(this.x - this.speed * dt > 123){
 				this.x = this.x - this.speed * dt;
 				this.multi.x = this.multi.x - this.speed * dt;
-				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
-				this.quota.member[1].x = this.quota.member[1].x - this.speed * dt;
-
+				this.quota.setPosition(- this.speed * dt, 0, true);
 			}else{
 				bgSlideEnd = true;
 				this.x = 123;
 				this.multi.x = 230;
-				this.quota.member[0].x = 275;
-				this.quota.member[1].x = 315;
+				this.quota.setPosition(275, 476);
 			}
 		}
 
@@ -83,7 +80,7 @@ function StageChange(){
 
 			if(this.level.x + this.speed * dt < 186){
 				this.level.x = this.level.x + this.speed * dt;
-				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
+				this.currentLevel.setPosition(this.speed * dt, 0, true);
 			}else{
 				hdSlideEnd = true;
 				this.level.x = 186;
@@ -94,13 +91,11 @@ function StageChange(){
 
 			if(this.level.x + this.speed * dt < 165){
 				this.level.x = this.level.x + this.speed * dt;
-				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
-				this.currentLevel.member[1].x = this.currentLevel.member[1].x + this.speed * dt;
+				this.currentLevel.setPosition(this.speed * dt, 0, true);
 			}else{
 				hdSlideEnd = true;
 				this.level.x = 165;
-				this.currentLevel.member[0].x = 392;
-				this.currentLevel.member[1].x = 350;
+				this.currentLevel.setPosition(350, 354);
 			}
 
 		}
@@ -126,13 +121,7 @@ function StageChange(){
 
 			this.x = this.x - this.speed * dt;
 			this.multi.x = this.multi.x - this.speed * dt;
-
-			if(this.quota.member.length === 1){
-				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
-			}else{
-				this.quota.member[0].x = this.quota.member[0].x - this.speed * dt;
-				this.quota.member[1].x = this.quota.member[1].x - this.speed * dt;
-			}
+			this.quota.setPosition( - this.speed * dt, 0, true);
 		}else{
 			bgSlideEnd = true;
 		}
@@ -140,22 +129,14 @@ function StageChange(){
 		//title slideout
 		if(this.level.x + this.speed * dt < 520){
 			this.level.x = this.level.x + this.speed * dt;
-
-			if(this.currentLevel.member.length === 1){
-				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
-			}else{
-				this.currentLevel.member[0].x = this.currentLevel.member[0].x + this.speed * dt;
-				this.currentLevel.member[1].x = this.currentLevel.member[1].x + this.speed * dt;
-			}
-			
+			this.currentLevel.setPosition( this.speed * dt, 0, true);
 		}else{
 			hdSlideEnd = true;
 		}
 
 		if( bgSlideEnd && hdSlideEnd ){
 			this.update = null;
-			//init next stage
-			g_ApplicationManager.gamePlay.setStage();
+			g_ApplicationManager.gamePlay.startStage();
 		}
 
 	}

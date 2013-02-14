@@ -39,8 +39,7 @@ function AnimatedGameObject()
     this.setAnimation = function(image, sx, sy, width, height, x, y, frameCount, fps)
     {
         if (frameCount <= 0) throw "framecount can not be <= 0";
-        if (fps <= 0) throw "fps can not be <= 0"
-
+        if (fps <= 0) throw "fps can not be <= 0";
         this.image = image;
         this.sx = sx;
         this.sy = sy;
@@ -49,9 +48,11 @@ function AnimatedGameObject()
         this.x = x;
         this.y = y;
         this.currentFrame = 0;
+        this.frameWidth = width;
         this.frameCount = frameCount;
         this.timeBetweenFrames = 1/fps;
         this.timeSinceLastFrame = this.timeBetweenFrames;
+        console.log('sx: '+this.sx+'/sy: '+ this.sy+'/x: '+ this.x+'/y: '+ this.y+'/width: '+ this.width+'/height: '+this.height);
     }
 
     /**

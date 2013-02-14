@@ -31,14 +31,18 @@ function GamePlay(){
 		level : null,	//hold current level object
 		init : function(){
 			g_score = 0;
-			score.total = new GameFont().startupGameFont('0', 'L', 'right', 480, 20, 3);
-			score.text = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 504, 96, 24, 80, 240, 4);
-			score.level = new GameFont().startupGameFont('1', 'S-yellow', 'left', 178, 240, 4);
+			score.total = new GameFont().startupGameFont('0', 'L', 'right', 480, 20, 6);
+			score.text = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 378, 504, 96, 24, 80, 240, 6);
+			score.level = new GameFont().startupGameFont('1', 'S-yellow', 'left', 178, 240, 6);
 		},
 
 		updateScore : function(int){
 			g_score = g_score + int;
 			score.total.updateGameFont(g_score.toString());
+		},
+
+		levelup : function(){
+			score.level.updateGameFont(zooKeeper.level.toString());
 		},
 
 		shutDown : function(){
@@ -48,33 +52,46 @@ function GamePlay(){
 		}
 	}
 
-	//level up & stage change
-	var upgrade = {
-		stage : null,
-
-		transition : function(level, levelStage){
-			/*******************
-				@param level : 			current difficult level
-				@param levelStage : 	current stage in current difficult level( total 3 stages in each difficult level )
-			********************/
-			if(upgrade.stage){
-				upgrade.stage.reset(level, levelStage);
-			}else{
-				upgrade.stage = new StageChange().startupStageChange(level, levelStage);
-			}
-
-		}
-
-	}
-
 	//top most animation looping
 	var mascot = {
 		background : null,
 		animal : null,
 		twitched : false,
 		setStage : function(stageName){
-			var sx, sy, w, h, x, y;
-			switch (stageName) 
+			var sx, sy, w, h, x, y, _stageName, _id;
+			if(stageName){
+				_stageName = stageName;
+			}else{
+				_id = Math.floor(Math.random()*7 + 1);
+				switch(_id){
+					case 1 : 
+						_stageName = 'monkey';
+						break
+					case 2 :
+						_stageName = 'panda';
+						break
+					case 3 :
+						_stageName = 'giraffe';
+						break
+					case 4 :
+						_stageName = 'hippo';
+						break
+					case 5 :
+						_stageName = 'elephant';
+						break
+					case 6 :
+						_stageName = 'crocodile';
+						break
+					case 7 :
+						_stageName = 'lion';
+						break
+					default : 
+				}
+			}
+
+			zooKeeper.luckyId = _id;
+
+			switch (_stageName) 
 			{
 				case 'crocodile' : 
 					i = 0; sy = 0; w = 228; h = 212; x = 198; y = 35;
@@ -97,29 +114,35 @@ function GamePlay(){
 				case 'panda' :
 					i = 6; sy = 1336; w = 148; h = 228; x = 238; y = 39;
 					break
-				default :
+				default : 
 			}
 
-			mascot.background.setImage(g_ResourceManager.mascotBg, 0, 280*i, 512, 278, 1);
-			mascot.animal.setAnimation(g_ResourceManager.mascot, 0, sy, w, h, x, y, 2, 2);
+			if(mascot.background){
+				mascot.background.setImage(g_ResourceManager.mascotBg, 0, 280*i, 512, 278, 0, 0);
+			}else{
+				mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 280*i, 512, 278, 0, 0, 3);
+			}
+
+			if(mascot.animal){
+				/*image, sx, sy, width, height, x, y, frameCount, fps*/
+				mascot.animal.setAnimation(g_ResourceManager.mascot, 0, sy, w, h, x, y, 2, 2);
+			}else{
+				mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, sy, w, h, x, y, 4, 2, 2);
+			}
 		},
 
 		twitch : function(){
 			mascot.animal.frameCount = 4;
 			mascot.twitched = true;
+			mascot.animal.update = mascot.update;
 		},
 
 		update : function(){
 			if(mascot.twitched && mascot.animal.currentFrame === 3){
 				mascot.animal.frameCount = 2;
 				mascot.twitched = false;
+				mascot.animal.update = null;
 			}
-		},
-
-		init : function(){
-			mascot.background = new VisualGameObject().startupVisualGameObject(g_ResourceManager.mascotBg, 0, 0, 512, 278, 0, 0, 3);
-			mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, 0, 228, 212, 198, 35, 4, 2, 2);
-			mascot.animal.update = mascot.update;
 		},
 		
 		shutDown : function(){
@@ -140,6 +163,10 @@ function GamePlay(){
 
 		countdown : function(){
 			timer.counter.update = timer.timeTick;
+		},
+
+		pause : function(){
+			timer.counter.update = null;
 		},
 
 		bouns : function(dh){
@@ -174,6 +201,7 @@ function GamePlay(){
 		background : null,
 		field : null,
 		picker : null,
+		nomove : null,
 		panel : new Array(16),
 		toExplode : [],
 		movable : [],
@@ -201,7 +229,7 @@ function GamePlay(){
 			play.picker.x = piece.x - 6;
 			play.picker.y = piece.y - 6;
 			play.selected = piece;
-			console.log('['+piece.row+']['+piece.col+']'+'id:'+piece.id)
+			//console.log('['+piece.row+']['+piece.col+']'+'id:'+piece.id)
 		},
 
 		pickerOff : function(){
@@ -320,8 +348,7 @@ function GamePlay(){
 			for(var i=0, l=array.length; i<l; i++){
 				//console.log('(row)'+array[i].row+' '+'(col)'+array[i].col+' '+'(id)'+array[i].id);
 				if(array[i].enrolled){
-					console.log('break')
-					break;
+					continue;
 				}
 
 				verticalCheckResult = [];
@@ -425,6 +452,7 @@ function GamePlay(){
 
 		pieceExplode : function(array){
 			var exploded;
+			var stageClear = false;
 			play.field.mouseclick = null;
 
 			for(var i=0, l=array.length; i<l; i++){
@@ -462,7 +490,9 @@ function GamePlay(){
 
 		        if(exploded){
 		        	play.field.update = null;
+		        	zooKeeper.updateScore(array);
 		        	play.pieceReload(array);
+		        	play.field.mouseclick = play.pieceClick;
 		        }
 			}
 
@@ -473,6 +503,7 @@ function GamePlay(){
 			//console.log('1:'+array.length)
 			var rowIndex, colIndex, pieceLoaded;
 			var toReload = [];
+			play.field.mouseclick = null;
 			for(var i=0, l=array.length; i<l; i++){
 				pieceLoaded = false;
 				rowIndex = array[i].row;
@@ -529,12 +560,13 @@ function GamePlay(){
 				toReload[i].enrolled = null;
 			}
 
+			play.field.mouseclick = play.pieceClick;
 			play.pieceDrop(toReload);
 			
 		},
 
 		pieceDrop : function(array){
-
+			play.field.mouseclick = null;
 			play.field.update = function(dt, context, xScroll, yScroll){
 				var allDone = true;
 				for(var i=0, l=array.length; i<l; i++){
@@ -547,20 +579,27 @@ function GamePlay(){
 				}
 				if(allDone){
 					play.field.update = null;
-					play.aftermath(array);
-					
+					play.field.mouseclick = play.pieceClick;
+					if(!zooKeeper.stageClear){
+						play.aftermath(array);
+					}else{
+						play.rolloutPieces(true);
+					}
 				}
 			}
 		},
 
 		aftermath : function(array){
 			var toExplode = play.pieceCheck(array);
+			var movable = true;
+
 			if(toExplode.length > 0){
-				console.log('aftermath');
 				play.pieceExplode(toExplode);
 			}else{
-				play.movableCheck();
-				play.field.mouseclick = play.pieceClick;
+				movable = play.movableCheck();
+				if(!movable){
+					play.rolloutPieces();
+				}
 			}
 		},
 
@@ -597,7 +636,7 @@ function GamePlay(){
 					//console.log('*********************************************')
 
 					if(movable.length > 0){
-						console.log('yes movable')
+						//console.log('yes movable')
 						play.movable = movable;
 						return true;
 					}
@@ -612,15 +651,13 @@ function GamePlay(){
 					//rightward swap check
 					if(j < 7){
 						if(check(play.panel[i][j+1])){
-							console.log('right movable')
-							return;
+							return true;
 						};
 					}
 					//downward swap check
 					if(i < 7){
 						if(check(play.panel[i+1][j])){
-							console.log('top movable')
-							return;
+							return true;
 						};
 					}
 				}
@@ -628,12 +665,33 @@ function GamePlay(){
 
 			play.movable = [];
 			console.log('no move');
-			play.rolloutPieces();
+			return false;
+		},
+
+		noMoreMove : function(){
+			var timePass = 0;
+			var duration = 1;
+			if(play.nomove){
+				play.nomove.x = 145;
+			}else{
+				play.nomove = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 0, 1094, 316, 60, 145, 470, 3);
+			}
+			timer.bouns(50);
+			timer.pause();
+			score.updateScore(8000);
+			play.nomove.update = function(dt, context, xScroll, yScroll){
+				timePass = timePass + dt;
+				if(timePass > duration){
+					play.nomove.update = null;
+					play.nomove.x = 520;
+					timer.countdown();
+					play.rollinPieces();
+				}
+			}
 		},
 
 		rolloutPieces : function(onStageChange){
 			play.field.mouseclick = null;
-
 			var speed = 500;
 			var piece, allDone;
 			play.field.update = function(dt, context, xScroll, yScroll){
@@ -666,9 +724,11 @@ function GamePlay(){
 					play.prepareSence();
 					
 					if(onStageChange){
+						console.log('change stage');
 						zooKeeper.nextStage();
 					}else{
-						play.rollinPieces();
+						console.log('no move');
+						play.noMoreMove();
 					}
 				}
 			}
@@ -704,6 +764,73 @@ function GamePlay(){
 		},
 
 		prepareSence : function(){
+			//console.log('prepareSence')
+			var testArr = [];
+			var senceReady = false;
+			var bomb;
+
+			function randomPieces(){
+				var piece;
+				for(var i=0; i<8; i++){
+					for(var j=0; j<8; j++){
+						piece = play.panel[i][j];
+						piece.id = Math.floor(Math.random()*8 + 1);
+						piece.sy = (piece.id - 1)*46;
+					}
+				}
+			}
+
+			function clearBomb(){
+				var newBomb = [];
+				var bombReduced = false;
+				
+				while(!bombReduced){
+
+					if(bomb[0].id < 8){
+						bomb[0].id ++;
+					}else{
+						bomb[0].id = 1;
+					}
+					bomb[0].sy = (bomb[0].id-1)*46;
+					//alert('bomb id: '+bomb[0].id);
+					newBomb = play.pieceCheck(bomb);
+					if(newBomb.length <= bomb.length){
+						bomb = newBomb;
+						bombReduced = true;
+						break;
+					}/*else{
+						for(var i=0,l=newBomb.length; i<l; i++){
+							console.log('newBomb: ['+newBomb[i].row+']['+ newBomb[i].col +']'+newBomb[i].id+'//bomb: ['+bomb[i].row+']['+ bomb[i].col +']'+bomb[i].id);
+						}
+						console.log('--------------------')
+						alert('not reduce')
+					}*/
+				}
+				//console.log('***********************')
+			}
+
+			for(var i=0; i<8; i++){
+				testArr = testArr.concat(play.panel[i]);
+			}
+
+			while(!senceReady){
+				
+				var movable = false;
+				randomPieces();
+				
+				bomb = play.pieceCheck(testArr);
+
+				while(bomb.length > 2){
+					clearBomb();
+				}
+				movable = play.movableCheck();
+				//console.log('movable: '+movable)
+				if(movable){
+					senceReady = true;
+					break;
+				}
+
+			}
 			
 		}
 	}
@@ -712,18 +839,61 @@ function GamePlay(){
 	var zooKeeper = {
 		level : 1,
 		currentLevelStage : 1,
+		luckyId : 0,
+		basePerScore : 50,
+		basePerTimeBouns : 5,
+		stageClear : false,
+		stage : null,
 
 		init : function(){
 			//custom event binding
 			record.init(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);
 			score.init();
-			mascot.init();
 			timer.init();
+			mascot.setStage();
 			play.init();
-
-			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
-
+			play.prepareSence();
 			return zooKeeper;
+		},
+
+		prepareStage : function(){
+			/*******************
+				@param level : 			current difficult level
+				@param levelStage : 	current stage in current difficult level( total 3 stages in each difficult level )
+			********************/
+			if(zooKeeper.stage){
+				zooKeeper.stage.reset(zooKeeper.level, zooKeeper.currentLevelStage);
+			}else{
+				zooKeeper.stage = new StageChange().startupStageChange(zooKeeper.level, zooKeeper.currentLevelStage);
+			}
+
+		},
+
+		updateScore : function(array){
+			var stageClear = true;
+			//update attr
+			for(var i=0, l=array.length; i<l; i++){
+				if(array[i].id === zooKeeper.luckyId){
+					if(!mascot.twitched){
+						mascot.twitch();
+					}
+					score.updateScore(zooKeeper.basePerScore * 2);
+					timer.bouns(zooKeeper.basePerTimeBouns * 2);
+				}else{
+					score.updateScore(zooKeeper.basePerScore);
+					timer.bouns(zooKeeper.basePerTimeBouns);
+				}
+				record.member[array[0].id - 1].updateScore(1);
+			}
+			/*
+			//check if stage clear
+			for(var i=0, l=record.member.length; i<l; i++){
+				if(!record.member[i].qualified){
+					stageClear = false;
+				}
+			}
+			*/
+			zooKeeper.stageClear = stageClear;
 		},
 
 		nextStage : function(){
@@ -732,17 +902,21 @@ function GamePlay(){
 			}else{
 				zooKeeper.currentLevelStage = 1;
 				zooKeeper.level ++;
+				score.levelup();
 			}
-			record.reset(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);
-			timer.reset(timer.limit - 5 * zooKeeper.level);
-			upgrade.transition(zooKeeper.level, zooKeeper.currentLevelStage);
+
+			zooKeeper.stageClear = false;
+			record.reset(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);	
+			timer.reset(120 - 5 * zooKeeper.level);
+			timer.counter.update = null;
+			mascot.setStage();
+			zooKeeper.prepareStage();
 		},
 
-		setStage : function(){
+		startStage : function(){
 			//callback after stage change animation, start counting, init animals .etc 
 			timer.countdown();
 			play.rollinPieces();
-
 		},
 
 		shutDown : function(){
