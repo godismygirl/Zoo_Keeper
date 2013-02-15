@@ -14,7 +14,7 @@ var g_Resource = [
 	{name:'mascot', src:'resource/mascot.png'},
 	{name:'mascotBg', src:'resource/mascot_bg.png'},
 ]
-var g_score = 7000;
+var g_score = 0;
 
 window.onload = init;
 

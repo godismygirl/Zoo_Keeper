@@ -8,7 +8,7 @@ function GameMenu()
 	{
 		this.background =  new VisualGameObject().startupVisualGameObject(g_ResourceManager.titlescren, 0, 0, 512, 700, 0, 0, 1);
 		this.menuAnimation = new MenuAnimation().startupMenuAnimation();
-		this.startupVisualGameObject(g_ResourceManager.titlescren, 0, 910, 0, 0, 0, 0, 2);
+		this.startupVisualGameObject(g_ResourceManager.titlescren, 44, 704, 424, 64, 44, 437, 2);
 		return this;
 	}
 
@@ -30,16 +30,15 @@ function GameMenu()
 		switch (this.hoverOnButton)
 		{
 			case 'start' : 
-				this.setImage(g_ResourceManager.titlescren, 44, 704, 424, 64, 44, 437)
+				this.setImage(g_ResourceManager.titlescren, 44, 704, 424, 64, 44, 437);
 				break
 			case 'guide' :
-				this.setImage(g_ResourceManager.titlescren, 40, 772, 432, 64, 40, 501)
+				this.setImage(g_ResourceManager.titlescren, 40, 772, 432, 64, 40, 501);
 				break
 			case 'rank' :
-				this.setImage(g_ResourceManager.titlescren, 90, 840, 332, 64, 90, 565)
+				this.setImage(g_ResourceManager.titlescren, 90, 840, 332, 64, 90, 565);
 				break
 			default : 
-				this.setImage(g_ResourceManager.titlescren, 0, 910, 0, 0, 0, 0)
 		}
 	}
 

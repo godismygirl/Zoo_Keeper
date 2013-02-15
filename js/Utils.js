@@ -16,22 +16,3 @@ Array.prototype.removeObject = function(object)
         }
     }
 }
-/*
-Array.prototype.unique = function()   
-{   
-    var a = {};
-    for(var i=0, l=this.length; i<l; i++){   
-      if(typeof a[this[i]] == "undefined"){
-        a[this[i]] = 1; 
-      }     
-    }
-
-    this.length = 0;
-
-    for(var i in a){
-      this[this.length] = i;
-    }  
-        
-    return this;   
-}
-*/

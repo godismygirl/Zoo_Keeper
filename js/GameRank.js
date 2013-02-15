@@ -34,8 +34,11 @@ function GameRank()
 	{
 		if(event.offsetX > 146 && event.offsetX < 362 && event.offsetY > 615 && event.offsetY < 658){
 			//hover on exit
-			g_ApplicationManager.gameMenu = new GameMenu().startupGameMenu();
-			this.shutdownGameRank();
+			g_ApplicationManager.fade(function(){
+				g_ApplicationManager.rank.shutdownGameRank();
+				g_ApplicationManager.gameMenu = new GameMenu().startupGameMenu();	
+			})
+			
 		}
 	}
 

@@ -16,9 +16,9 @@ function GamePlay(){
 			}
 		},
 
-		shutDown : function(){
+		shutdown : function(){
 			for(var i=0, l=record.member.length; i<l; i++){
-				record.member[i].shutDownScoreboard();
+				record.member[i].shutdownScoreboard();
 			}
 		}
 
@@ -45,10 +45,10 @@ function GamePlay(){
 			score.level.updateGameFont(zooKeeper.level.toString());
 		},
 
-		shutDown : function(){
-			score.total.shutDownGameFont();
-			score.text.shutDownVisualGameObject();
-			score.level.shutDownGameFont();
+		shutdown : function(){
+			score.total.shutdownGameFont();
+			score.text.shutdownVisualGameObject();
+			score.level.shutdownGameFont();
 		}
 	}
 
@@ -124,7 +124,6 @@ function GamePlay(){
 			}
 
 			if(mascot.animal){
-				/*image, sx, sy, width, height, x, y, frameCount, fps*/
 				mascot.animal.setAnimation(g_ResourceManager.mascot, 0, sy, w, h, x, y, 2, 2);
 			}else{
 				mascot.animal = new AnimatedGameObject().startupAnimatedGameObject(g_ResourceManager.mascot, 0, sy, w, h, x, y, 4, 2, 2);
@@ -145,9 +144,9 @@ function GamePlay(){
 			}
 		},
 		
-		shutDown : function(){
-			mascot.background.shutDownVisualGameObject();
-			mascot.animal.shutDownAnimatedGameObject();
+		shutdown : function(){
+			mascot.background.shutdownVisualGameObject();
+			mascot.animal.shutdownAnimatedGameObject();
 		}
 
 	}
@@ -155,7 +154,7 @@ function GamePlay(){
 	//time count
 	var timer = {
 		counter : null,
-		limit : 120,
+		limit : 80,
 		init : function(timeLimit){
 			timer.counter = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 516, 4, 12, 374, 84, 301, 4);
 			if(timeLimit){timer.limit = timeLimit}
@@ -192,7 +191,17 @@ function GamePlay(){
 			var dl = dt/timer.limit * 374;
 			this.y = this.y + dl;
 			this.sy = this.sy + dl;
-			this.height = this.height - dl;
+			if(this.height - dl > 0){
+				this.height = this.height - dl;
+			}else{
+				this.height = 0;
+				timer.pause();
+				zooKeeper.gameOver();
+			}
+		},
+
+		shutdown : function(){
+			timer.counter.shutdownVisualGameObject();
 		}
 	}
 
@@ -543,12 +552,9 @@ function GamePlay(){
 	
 				}
 			}
-			//console.log('---'+toReload.length+'----')
 
 			//reset row, col index of pieces to be reload
 			for(var i=0, l=toReload.length; i<l; i++){
-				//console.log('['+toReload[i].row+']['+toReload[i].col+']');
-				//console.log(toReload[i].downStep);
 				play.panel[toReload[i].row][toReload[i].col] = null;
 				toReload[i].row = toReload[i].row - toReload[i].downStep;
 				
@@ -583,7 +589,7 @@ function GamePlay(){
 					if(!zooKeeper.stageClear){
 						play.aftermath(array);
 					}else{
-						play.rolloutPieces(true);
+						play.rolloutPieces(zooKeeper.nextStage);
 					}
 				}
 			}
@@ -631,7 +637,6 @@ function GamePlay(){
 					swapTarget.col = swapTargetCol;
 					play.panel[currentRow][currentCol] = current;
 					play.panel[swapTargetRow][swapTargetCol] = swapTarget;
-
 					//console.log('after:'+current.row+'/'+current.col);
 					//console.log('*********************************************')
 
@@ -664,7 +669,7 @@ function GamePlay(){
 			}
 
 			play.movable = [];
-			console.log('no move');
+			//console.log('no move');
 			return false;
 		},
 
@@ -690,7 +695,7 @@ function GamePlay(){
 			}
 		},
 
-		rolloutPieces : function(onStageChange){
+		rolloutPieces : function(onRolloutHandler){
 			play.field.mouseclick = null;
 			var speed = 500;
 			var piece, allDone;
@@ -723,11 +728,10 @@ function GamePlay(){
 					//shuffle pieces
 					play.prepareSence();
 					
-					if(onStageChange){
-						console.log('change stage');
-						zooKeeper.nextStage();
+					if(onRolloutHandler){
+						onRolloutHandler();
 					}else{
-						console.log('no move');
+						//console.log('no move');
 						play.noMoreMove();
 					}
 				}
@@ -798,15 +802,8 @@ function GamePlay(){
 						bomb = newBomb;
 						bombReduced = true;
 						break;
-					}/*else{
-						for(var i=0,l=newBomb.length; i<l; i++){
-							console.log('newBomb: ['+newBomb[i].row+']['+ newBomb[i].col +']'+newBomb[i].id+'//bomb: ['+bomb[i].row+']['+ bomb[i].col +']'+bomb[i].id);
-						}
-						console.log('--------------------')
-						alert('not reduce')
-					}*/
+					}
 				}
-				//console.log('***********************')
 			}
 
 			for(var i=0; i<8; i++){
@@ -831,7 +828,17 @@ function GamePlay(){
 				}
 
 			}
-			
+		},
+
+		shutdown : function(){
+			play.background.shutdownVisualGameObject();
+			play.field.shutdownVisualGameObject();
+			play.picker.shutdownAnimatedGameObject();
+			for(var i=0; i<8; i++){
+				for(var j=0; j<8; j++){
+					play.panel[i][j].shutdownPiece();
+				}
+			}
 		}
 	}
 
@@ -843,7 +850,6 @@ function GamePlay(){
 		basePerScore : 50,
 		basePerTimeBouns : 5,
 		stageClear : false,
-		stage : null,
 
 		init : function(){
 			//custom event binding
@@ -856,15 +862,28 @@ function GamePlay(){
 			return zooKeeper;
 		},
 
-		prepareStage : function(){
+		levelup : function(){
+			var timePass = 0;
+			var duration = 1;
+			var levelupText = new VisualGameObject().startupVisualGameObject(g_ResourceManager.main, 68, 502, 308, 68, 150, 450, 3);
+			levelupText.update = function(dt, context, xScroll, yScroll){
+				timePass = timePass + dt;
+				if(timePass > duration){
+					levelupText.shutdownVisualGameObject();
+					new StageChange().startupStageChange(zooKeeper.level, zooKeeper.currentLevelStage);
+				}
+			}
+		},
+
+		prepareStage : function(isLevelup){
 			/*******************
 				@param level : 			current difficult level
 				@param levelStage : 	current stage in current difficult level( total 3 stages in each difficult level )
 			********************/
-			if(zooKeeper.stage){
-				zooKeeper.stage.reset(zooKeeper.level, zooKeeper.currentLevelStage);
+			if(isLevelup){
+				zooKeeper.levelup();
 			}else{
-				zooKeeper.stage = new StageChange().startupStageChange(zooKeeper.level, zooKeeper.currentLevelStage);
+				new StageChange().startupStageChange(zooKeeper.level, zooKeeper.currentLevelStage);
 			}
 
 		},
@@ -885,32 +904,34 @@ function GamePlay(){
 				}
 				record.member[array[0].id - 1].updateScore(1);
 			}
-			/*
+			
 			//check if stage clear
 			for(var i=0, l=record.member.length; i<l; i++){
 				if(!record.member[i].qualified){
 					stageClear = false;
 				}
 			}
-			*/
+			
 			zooKeeper.stageClear = stageClear;
 		},
 
 		nextStage : function(){
+			var onLevelup = false;
 			if(zooKeeper.currentLevelStage < 3){
 				zooKeeper.currentLevelStage ++;
 			}else{
 				zooKeeper.currentLevelStage = 1;
 				zooKeeper.level ++;
 				score.levelup();
+				onLevelup = true;
 			}
 
 			zooKeeper.stageClear = false;
 			record.reset(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);	
-			timer.reset(120 - 5 * zooKeeper.level);
+			timer.reset(80 - 5 * zooKeeper.level);
 			timer.counter.update = null;
 			mascot.setStage();
-			zooKeeper.prepareStage();
+			zooKeeper.prepareStage(onLevelup);
 		},
 
 		startStage : function(){
@@ -919,8 +940,22 @@ function GamePlay(){
 			play.rollinPieces();
 		},
 
-		shutDown : function(){
-			g_GameObjectManager.gameObjects = [];
+		gameOver : function(){
+			play.field.mouseclick = null;
+			play.rolloutPieces(function(){
+				g_ApplicationManager.fade(function(){
+					zooKeeper.shutdown();
+
+				})
+			});
+		},
+
+		shutdown : function(){
+			record.shutdown();
+			score.shutdown();
+			mascot.shutdown();
+			timer.shutdown();
+			play.shutdown();
 		}
 	}
 

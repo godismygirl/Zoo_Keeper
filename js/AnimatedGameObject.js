@@ -52,7 +52,6 @@ function AnimatedGameObject()
         this.frameCount = frameCount;
         this.timeBetweenFrames = 1/fps;
         this.timeSinceLastFrame = this.timeBetweenFrames;
-        console.log('sx: '+this.sx+'/sy: '+ this.sy+'/x: '+ this.x+'/y: '+ this.y+'/width: '+ this.width+'/height: '+this.height);
     }
 
     /**

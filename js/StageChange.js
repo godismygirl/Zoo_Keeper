@@ -26,7 +26,7 @@ function StageChange(){
 		
 		return this;
 	}
-
+	/*
 	this.reset = function(level, levelStage){
 		var _x;
 		if(level*3 + levelStage - 1 > 9){
@@ -43,7 +43,7 @@ function StageChange(){
 		this.currentLevel.setPosition(-55, 354);
 		this.update = this.slideIn;
 	}
-
+	*/
 	this.slideIn = function(dt, context, xScroll, yScroll){
 		var bgSlideEnd = false;
 		var hdSlideEnd = false;
@@ -137,6 +137,7 @@ function StageChange(){
 		if( bgSlideEnd && hdSlideEnd ){
 			this.update = null;
 			g_ApplicationManager.gamePlay.startStage();
+			this.shutdownStageChange();
 		}
 
 	}
