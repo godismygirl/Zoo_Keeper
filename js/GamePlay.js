@@ -182,9 +182,8 @@ function GamePlay(){
 
 		reset : function(limit){
 			timer.limit = limit;
-			timer.counter.y = 301;
-			timer.counter.sy = 4;
-			timer.counter.height = 374;
+			timer.bouns(50);
+			timer.pause();
 		},
 
 		timeTick : function(dt, context, xScroll, yScroll){
@@ -848,7 +847,7 @@ function GamePlay(){
 		currentLevelStage : 1,
 		luckyId : 0,
 		basePerScore : 50,
-		basePerTimeBouns : 5,
+		basePerTimeBouns : 4,
 		stageClear : false,
 
 		init : function(){
@@ -928,8 +927,7 @@ function GamePlay(){
 
 			zooKeeper.stageClear = false;
 			record.reset(zooKeeper.level * 3 + zooKeeper.currentLevelStage -1);	
-			timer.reset(80 - 5 * zooKeeper.level);
-			timer.counter.update = null;
+			timer.reset(80 - 4 * zooKeeper.level);
 			mascot.setStage();
 			zooKeeper.prepareStage(onLevelup);
 		},
