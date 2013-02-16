@@ -682,7 +682,7 @@ function GamePlay(){
 			}
 			timer.bouns(50);
 			timer.pause();
-			score.updateScore(8000);
+			score.updateScore(2000);
 			play.nomove.update = function(dt, context, xScroll, yScroll){
 				timePass = timePass + dt;
 				if(timePass > duration){
@@ -943,7 +943,7 @@ function GamePlay(){
 			play.rolloutPieces(function(){
 				g_ApplicationManager.fade(function(){
 					zooKeeper.shutdown();
-
+					g_ApplicationManager.endGame = GameOver();
 				})
 			});
 		},

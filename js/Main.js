@@ -13,6 +13,7 @@ var g_Resource = [
 	{name:'main', src:'resource/main.png'},
 	{name:'mascot', src:'resource/mascot.png'},
 	{name:'mascotBg', src:'resource/mascot_bg.png'},
+	{name:'end', src:'resource/gameover.png'}
 ]
 var g_score = 0;
 

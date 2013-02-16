@@ -6,7 +6,7 @@ function GameMenu()
 
 	this.startupGameMenu = function()
 	{
-		this.background =  new VisualGameObject().startupVisualGameObject(g_ResourceManager.titlescren, 0, 0, 512, 700, 0, 0, 1);
+		this.background =  new VisualGameObject().startupVisualGameObject(g_ResourceManager.titlescren, 0, 0, 512, 696, 0, 0, 1);
 		this.menuAnimation = new MenuAnimation().startupMenuAnimation();
 		this.startupVisualGameObject(g_ResourceManager.titlescren, 44, 704, 424, 64, 44, 437, 2);
 		return this;
